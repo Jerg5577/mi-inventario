@@ -12,61 +12,93 @@
   <style>
     :root {
       --azul: #1749a8;
-      --azul-oscuro: #103779;
+      --azul2: #103779;
       --fondo: #f3f6fb;
       --texto: #202938;
       --borde: #dfe5ee;
       --verde: #18794e;
       --rojo: #c62828;
-      --amarillo: #9a6700;
+      --amarillo: #946200;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 0 0 30px;
       background: var(--fondo);
       color: var(--texto);
-      font-family: Arial, sans-serif;
-      font-size: 16px;
+      font: 16px Arial, sans-serif;
     }
 
     header {
-      padding: 22px 18px 25px;
-      background: linear-gradient(135deg, var(--azul), var(--azul-oscuro));
+      background: linear-gradient(135deg, var(--azul), var(--azul2));
       color: white;
-      border-radius: 0 0 22px 22px;
+      padding: 22px 18px;
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 25px;
+    .encabezado {
+      max-width: 760px;
+      margin: auto;
     }
 
-    header p {
-      margin: 8px 0 0;
-      opacity: .9;
-      font-size: 14px;
+    header h1 { margin: 0; font-size: 26px; }
+    header p { margin: 8px 0 0; font-size: 14px; opacity: .9; }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: white;
+      border-bottom: 1px solid var(--borde);
+      display: flex;
+      gap: 7px;
+      padding: 10px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    nav button {
+      flex: 0 0 auto;
+      min-height: 42px;
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 10px 13px;
+      background: white;
+      color: #35435a;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    nav button.activo {
+      background: var(--azul);
+      border-color: var(--azul);
+      color: white;
     }
 
     main {
-      width: min(100% - 24px, 560px);
-      margin: 18px auto 0;
+      width: min(100% - 24px, 650px);
+      margin: 18px auto 26px;
     }
+
+    .vista { display: none; }
+    .vista.activa { display: block; }
 
     .panel {
-      background: white;
+      padding: 18px;
+      margin-bottom: 15px;
       border: 1px solid var(--borde);
       border-radius: 16px;
-      padding: 17px;
-      margin-bottom: 15px;
-      box-shadow: 0 3px 12px rgba(25, 45, 80, .045);
+      background: white;
+      box-shadow: 0 3px 12px rgba(25, 45, 80, .04);
     }
 
-    h2 {
-      margin: 0 0 14px;
-      font-size: 19px;
+    h2 { margin: 0 0 14px; font-size: 20px; }
+    h3 { margin: 0 0 9px; font-size: 17px; }
+
+    p.descripcion {
+      color: #637086;
+      font-size: 14px;
+      line-height: 1.5;
     }
 
     label {
@@ -84,175 +116,140 @@
       border-radius: 10px;
       padding: 12px;
       font: inherit;
-      background: white;
       color: var(--texto);
+      background: white;
     }
 
-    textarea {
-      min-height: 78px;
-      resize: vertical;
-    }
-
-    input[readonly] {
-      background: #f5f7fa;
-      color: #39465a;
-    }
+    textarea { min-height: 80px; resize: vertical; }
+    input[readonly] { background: #f5f7fa; }
 
     button {
-      min-height: 47px;
+      min-height: 45px;
       border: 0;
       border-radius: 10px;
-      padding: 12px 14px;
+      padding: 11px 14px;
       font: inherit;
       font-weight: 700;
       cursor: pointer;
       touch-action: manipulation;
     }
 
-    button:disabled {
-      opacity: .55;
-      cursor: wait;
-    }
+    button:disabled { opacity: .55; cursor: wait; }
 
-    .primario {
-      background: var(--azul);
-      color: white;
-    }
-
-    .secundario {
-      background: #e9eef7;
-      color: #203b67;
-    }
-
+    .primario { color: white; background: var(--azul); }
+    .secundario { color: #203b67; background: #e9eef7; }
     .ancho { width: 100%; }
 
-    .fila-botones {
+    .botones {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 9px;
       margin-top: 10px;
     }
 
-    #estado {
-      margin: 0 0 14px;
+    .estado {
       padding: 12px;
-      background: #edf3ff;
+      margin-bottom: 13px;
       border-radius: 10px;
+      background: #edf3ff;
+      font-size: 14px;
       line-height: 1.5;
       overflow-wrap: anywhere;
-      font-size: 14px;
     }
 
-    #lector {
-      width: 100%;
-      overflow: hidden;
-      margin-top: 12px;
-    }
-
+    #lector { width: 100%; overflow: hidden; margin-top: 12px; }
     #lector video { border-radius: 10px; }
 
     .oculto { display: none !important; }
 
-    .producto { display: none; }
-
-    .imagen-wrap {
+    .vista-imagen {
       display: none;
       text-align: center;
-      margin-bottom: 12px;
+      margin: 12px 0;
     }
 
-    #imagenProducto {
+    .vista-imagen img {
       max-width: 100%;
-      max-height: 210px;
+      max-height: 240px;
       object-fit: contain;
       border-radius: 12px;
     }
 
-    .nombre-producto {
-      margin: 4px 0 14px;
-      font-size: 20px;
+    .ficha {
+      margin-top: 14px;
+      padding: 14px;
+      background: #f7f9fc;
+      border: 1px solid #e7edf5;
+      border-radius: 12px;
+    }
+
+    .ficha-nombre {
+      font-size: 18px;
       font-weight: 700;
+      line-height: 1.4;
       overflow-wrap: anywhere;
     }
 
-    .datos-grid {
+    .datos {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
+      margin-top: 12px;
     }
 
     .dato {
+      min-width: 0;
+      padding: 12px;
       background: #f6f8fc;
       border: 1px solid #e8edf4;
-      border-radius: 11px;
+      border-radius: 10px;
+    }
+
+    .dato small { display: block; color: #637086; margin-bottom: 6px; }
+    .dato strong { display: block; font-size: 18px; overflow-wrap: anywhere; }
+
+    .alerta {
       padding: 12px;
-      min-width: 0;
-    }
-
-    .dato small {
-      display: block;
-      color: #637086;
-      margin-bottom: 6px;
-    }
-
-    .dato strong {
-      display: block;
-      font-size: 19px;
-      overflow-wrap: anywhere;
-    }
-
-    .estado-stock {
       margin-top: 12px;
-      padding: 12px;
       border-radius: 10px;
       font-weight: 700;
       font-size: 14px;
     }
 
-    .stock-verde { background: #e1f5e8; color: #17683f; }
-    .stock-amarillo { background: #fff1cc; color: #8a5700; }
-    .stock-rojo { background: #ffe4e4; color: #a51f1f; }
+    .verde { background: #e1f5e8; color: #17683f; }
+    .amarillo { background: #fff1cc; color: #8a5700; }
+    .rojo { background: #ffe4e4; color: #a51f1f; }
 
-    .tipo-selector {
+    .tipo-botones {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 9px;
       margin: 12px 0;
     }
 
-    .tipo-selector button {
-      border: 2px solid var(--borde);
+    .tipo-botones button {
       background: white;
-      color: var(--texto);
+      border: 2px solid var(--borde);
     }
 
-    .tipo-selector .seleccionado-entrada {
-      border-color: var(--verde);
-      background: #e1f5e8;
-      color: var(--verde);
-    }
-
-    .tipo-selector .seleccionado-salida {
-      border-color: var(--rojo);
-      background: #ffe4e4;
-      color: var(--rojo);
-    }
+    #btnEntrada.elegido { background: #e1f5e8; border-color: var(--verde); color: var(--verde); }
+    #btnSalida.elegido { background: #ffe4e4; border-color: var(--rojo); color: var(--rojo); }
 
     .movimiento {
       border: 1px solid var(--borde);
-      border-radius: 10px;
+      border-radius: 11px;
       padding: 12px;
       margin-top: 10px;
       overflow-wrap: anywhere;
     }
 
-    .movimiento-cabecera {
+    .mov-cabecera {
       display: flex;
       justify-content: space-between;
-      gap: 8px;
       align-items: center;
       flex-wrap: wrap;
-      margin-bottom: 7px;
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
     .etiqueta {
@@ -263,211 +260,227 @@
       font-weight: 700;
     }
 
-    .etiqueta-entrada { background: #e1f5e8; color: #17683f; }
-    .etiqueta-salida { background: #ffe4e4; color: #a51f1f; }
+    .etiqueta.entrada { color: #17683f; background: #e1f5e8; }
+    .etiqueta.salida { color: #a51f1f; background: #ffe4e4; }
 
-    .movimiento p {
-      margin: 5px 0;
-      font-size: 14px;
-    }
+    .movimiento p { margin: 5px 0; font-size: 14px; }
+    .pie { text-align: center; color: #647087; font-size: 12px; line-height: 1.5; }
 
-    .nota {
-      color: #647087;
-      font-size: 12px;
-      line-height: 1.5;
-      text-align: center;
-      padding: 0 12px;
-    }
-
-    .separador {
-      border: 0;
-      border-top: 1px solid var(--borde);
-      margin: 16px 0;
-    }
-
-    @media (max-width: 360px) {
+    @media (max-width: 380px) {
       main { width: calc(100% - 16px); }
       .panel { padding: 13px; }
-      .datos-grid { grid-template-columns: 1fr; }
+      .datos { grid-template-columns: 1fr; }
+      nav { padding: 8px; }
     }
   </style>
 </head>
 
 <body>
   <header>
-    <h1>📦 Sistema Glow</h1>
-    <p>Consulta y control de existencias</p>
+    <div class="encabezado">
+      <h1>📦 Sistema Glow</h1>
+      <p>Control de productos y existencias</p>
+    </div>
   </header>
 
+  <nav aria-label="Menú principal">
+    <button type="button" class="activo" data-vista="buscar">🔎 Buscar</button>
+    <button type="button" data-vista="asignar">🏷️ Asignar código</button>
+    <button type="button" data-vista="movimientos">📦 Entradas / salidas</button>
+    <button type="button" data-vista="historial">📋 Historial</button>
+  </nav>
+
   <main>
-    <!-- BÚSQUEDA PRINCIPAL -->
-    <section class="panel">
-      <h2>🔎 Buscar producto</h2>
+    <!-- VISTA 1: BUSCAR PRODUCTO -->
+    <section id="vista-buscar" class="vista activa">
+      <div class="panel">
+        <h2>Buscar producto</h2>
 
-      <div id="estado" role="status" aria-live="polite">
-        Escanea un código o escríbelo manualmente.
-      </div>
+        <div id="estado" class="estado" role="status" aria-live="polite">
+          Escribe un código de barras o utiliza la cámara.
+        </div>
 
-      <label for="codigo">Código de barras</label>
-      <input
-        id="codigo"
-        type="text"
-        placeholder="Escribe o escanea el código"
-        autocomplete="off"
-      >
+        <label for="codigo">Código de barras</label>
+        <input id="codigo" type="text" placeholder="Escanea o escribe el código"
+               autocomplete="off">
 
-      <button class="primario ancho" id="buscar" type="button">
-        Buscar producto
-      </button>
-
-      <div class="fila-botones">
-        <button class="secundario" id="iniciar" type="button">
-          📷 Abrir cámara
+        <button id="buscar" class="primario ancho" type="button">
+          Buscar producto
         </button>
-        <button class="secundario oculto" id="detener" type="button">
-          Detener cámara
+
+        <div class="botones">
+          <button id="iniciar" class="secundario" type="button">📷 Abrir cámara</button>
+          <button id="detener" class="secundario oculto" type="button">Detener cámara</button>
+        </div>
+
+        <div id="lector"></div>
+      </div>
+
+      <div id="tarjetaProducto" class="panel oculto">
+        <h2>Información del producto</h2>
+
+        <div id="imagenBuscarWrap" class="vista-imagen">
+          <img id="imagenBuscar" alt="Imagen del producto">
+        </div>
+
+        <div id="nombreBuscar" class="ficha-nombre"></div>
+
+        <div class="datos">
+          <div class="dato"><small>ID</small><strong id="idBuscar"></strong></div>
+          <div class="dato"><small>Precio</small><strong id="precioBuscar"></strong></div>
+          <div class="dato"><small>Categoría</small><strong id="categoriaBuscar"></strong></div>
+          <div class="dato"><small>Stock</small><strong id="stockBuscar"></strong></div>
+          <div class="dato"><small>Stock mínimo</small><strong id="minimoBuscar"></strong></div>
+          <div class="dato"><small>Código de barras</small><strong id="codigoBuscar"></strong></div>
+        </div>
+
+        <div id="alertaStock" class="alerta"></div>
+        <button id="irMovimiento" class="primario ancho" type="button"
+                style="margin-top:12px">
+          Registrar entrada o salida
         </button>
-      </div>
-
-      <div id="lector"></div>
-    </section>
-
-    <!-- ASIGNAR CÓDIGO A PRODUCTOS EXISTENTES -->
-    <section class="panel">
-      <h2>🏷️ Asignar código de barras</h2>
-
-      <p style="color:#637086;font-size:14px;line-height:1.5">
-        Busca un producto que ya esté en Google Sheets y todavía no tenga
-        código de barras.
-      </p>
-
-      <label for="consultaSinCodigo">Nombre o ID del producto</label>
-      <input
-        id="consultaSinCodigo"
-        type="search"
-        placeholder="Ej.: Nutriplus o 1001643"
-      >
-
-      <button id="buscarSinCodigo" class="primario ancho" type="button">
-        Buscar productos sin código
-      </button>
-
-      <label for="productoSinCodigo">Producto encontrado</label>
-      <select id="productoSinCodigo">
-        <option value="">Primero busca un producto</option>
-      </select>
-
-      <label for="codigoNuevo">Código de barras detectado</label>
-      <input
-        id="codigoNuevo"
-        type="text"
-        placeholder="Escanea un código"
-        readonly
-      >
-
-      <button id="escanearNuevoCodigo" class="secundario ancho" type="button">
-        📷 Escanear código para asignar
-      </button>
-
-      <button id="guardarCodigoNuevo" class="primario ancho" type="button">
-        Guardar código en el producto
-      </button>
-
-      <p id="estadoAsignacion" role="status"
-         style="font-size:14px;line-height:1.5"></p>
-    </section>
-
-    <!-- INFORMACIÓN DEL PRODUCTO -->
-    <section id="tarjetaProducto" class="panel producto">
-      <h2>Producto encontrado</h2>
-
-      <div id="contenedorImagen" class="imagen-wrap">
-        <img id="imagenProducto" alt="Imagen del producto">
-      </div>
-
-      <p id="nombreProducto" class="nombre-producto"></p>
-
-      <div class="datos-grid">
-        <div class="dato">
-          <small>Precio</small>
-          <strong id="precio"></strong>
-        </div>
-        <div class="dato">
-          <small>Categoría</small>
-          <strong id="categoria"></strong>
-        </div>
-        <div class="dato">
-          <small>Stock disponible</small>
-          <strong id="stock"></strong>
-        </div>
-        <div class="dato">
-          <small>Stock mínimo</small>
-          <strong id="stockMinimo"></strong>
-        </div>
-      </div>
-
-      <div id="alertaStock" class="estado-stock" role="status"></div>
-      <input id="idProducto" type="hidden">
-    </section>
-
-    <!-- MOVIMIENTOS -->
-    <section id="panelMovimiento" class="panel oculto">
-      <h2>📝 Registrar movimiento</h2>
-      <p id="productoMovimiento" style="margin-top:0;color:#637086"></p>
-
-      <label>Tipo de movimiento</label>
-      <div class="tipo-selector">
-        <button type="button" id="btnEntrada" class="seleccionado-entrada">
-          ＋ Entrada
-        </button>
-        <button type="button" id="btnSalida">
-          − Salida
+        <button id="irHistorial" class="secundario ancho" type="button"
+                style="margin-top:8px">
+          Ver historial del producto
         </button>
       </div>
-
-      <label for="cantidad">Cantidad de unidades</label>
-      <input
-        id="cantidad"
-        type="number"
-        min="1"
-        step="1"
-        value="1"
-        inputmode="numeric"
-      >
-
-      <label for="motivo">Motivo del movimiento</label>
-      <textarea
-        id="motivo"
-        maxlength="200"
-        placeholder="Ej.: mercancía recibida, venta, producto dañado..."
-      ></textarea>
-
-      <button id="guardarMovimiento" class="primario ancho" type="button">
-        Guardar movimiento
-      </button>
     </section>
 
-    <!-- HISTORIAL -->
-    <section id="panelHistorial" class="panel oculto">
-      <h2>📋 Historial del producto</h2>
+    <!-- VISTA 2: ASIGNAR CÓDIGO -->
+    <section id="vista-asignar" class="vista">
+      <div class="panel">
+        <h2>Asignar código de barras</h2>
+        <p class="descripcion">
+          Busca un producto existente sin código. Revisa su imagen antes de
+          escanear y guardar el código.
+        </p>
 
-      <button id="cargarHistorial" class="secundario ancho" type="button">
-        Actualizar historial
-      </button>
+        <div id="estadoAsignacion" class="estado" role="status" aria-live="polite">
+          Busca un producto por nombre o ID.
+        </div>
 
-      <div id="listaHistorial"></div>
+        <label for="consultaSinCodigo">Nombre o ID del producto</label>
+        <input id="consultaSinCodigo" type="search"
+               placeholder="Ej.: Nutriplus o 1001643">
+
+        <button id="buscarSinCodigo" class="primario ancho" type="button"
+                style="margin-top:10px">
+          Buscar productos sin código
+        </button>
+
+        <label for="productoSinCodigo">Selecciona un producto</label>
+        <select id="productoSinCodigo">
+          <option value="">Primero busca productos</option>
+        </select>
+
+        <div id="vistaPreviaAsignacion" class="ficha oculto">
+          <div id="imagenAsignacionWrap" class="vista-imagen">
+            <img id="imagenAsignacion" alt="Imagen del producto seleccionado">
+          </div>
+          <div id="nombreAsignacion" class="ficha-nombre"></div>
+
+          <div class="datos">
+            <div class="dato"><small>ID del producto</small><strong id="idAsignacion"></strong></div>
+            <div class="dato"><small>Categoría</small><strong id="categoriaAsignacion"></strong></div>
+            <div class="dato"><small>Precio</small><strong id="precioAsignacion"></strong></div>
+          </div>
+          <p id="estadoInventarioAsignacion" class="descripcion"></p>
+        </div>
+
+        <label for="codigoNuevo">Código de barras</label>
+        <input id="codigoNuevo" type="text" readonly
+               placeholder="Escanea el código de la etiqueta">
+
+        <div class="botones">
+          <button id="escanearNuevoCodigo" class="secundario" type="button">
+            📷 Escanear código
+          </button>
+          <button id="limpiarCodigo" class="secundario" type="button">
+            Limpiar código
+          </button>
+        </div>
+
+        <button id="guardarCodigoNuevo" class="primario ancho" type="button"
+                style="margin-top:10px">
+          Guardar asignación
+        </button>
+
+        <div id="lectorAsignacion"></div>
+      </div>
     </section>
 
-    <p class="nota">
-      Sistema Glow consulta y actualiza Google Sheets. Verifica el producto,
-      el tipo y la cantidad antes de guardar un movimiento.
+    <!-- VISTA 3: ENTRADAS Y SALIDAS -->
+    <section id="vista-movimientos" class="vista">
+      <div class="panel">
+        <h2>Entradas y salidas</h2>
+
+        <p id="productoMovimiento" class="descripcion">
+          Primero busca un producto en el menú Buscar.
+        </p>
+
+        <div id="estadoMovimiento" class="estado" role="status" aria-live="polite">
+          Selecciona un producto antes de registrar un movimiento.
+        </div>
+
+        <div id="formularioMovimiento" class="oculto">
+          <div class="ficha">
+            <div id="nombreMovimiento" class="ficha-nombre"></div>
+            <p id="stockMovimiento" class="descripcion"></p>
+          </div>
+
+          <label>Tipo de movimiento</label>
+          <div class="tipo-botones">
+            <button id="btnEntrada" class="elegido" type="button">＋ Entrada</button>
+            <button id="btnSalida" type="button">− Salida</button>
+          </div>
+
+          <label for="cantidad">Cantidad de unidades</label>
+          <input id="cantidad" type="number" min="1" step="1"
+                 value="1" inputmode="numeric">
+
+          <label for="motivo">Motivo del movimiento</label>
+          <textarea id="motivo" maxlength="200"
+                    placeholder="Ej.: compra recibida, venta, producto dañado..."></textarea>
+
+          <button id="guardarMovimiento" class="primario ancho" type="button"
+                  style="margin-top:12px">
+            Guardar movimiento
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA 4: HISTORIAL -->
+    <section id="vista-historial" class="vista">
+      <div class="panel">
+        <h2>Historial de movimientos</h2>
+        <p id="productoHistorial" class="descripcion">
+          Primero busca un producto en el menú Buscar.
+        </p>
+
+        <div id="estadoHistorial" class="estado" role="status" aria-live="polite">
+          Selecciona un producto para consultar sus movimientos.
+        </div>
+
+        <button id="cargarHistorial" class="secundario ancho" type="button">
+          Actualizar historial
+        </button>
+
+        <div id="listaHistorial"></div>
+      </div>
+    </section>
+
+    <p class="pie">
+      Sistema Glow · Datos conectados a Google Sheets.<br>
+      Revisa el producto y la cantidad antes de confirmar cada operación.
     </p>
   </main>
 
   <script>
-    // Usa la URL /exec de tu implementación actual.
     const URL_APPS_SCRIPT =
       "https://script.google.com/macros/s/AKfycbzrxb4r6eMwEd6t0bs3VEpsy8CE6SYOT_v2pzi7-kBOVZxZF6Z-YWkHKNSzf3ronKuw/exec";
+
+    const $ = id => document.getElementById(id);
 
     let productoActual = null;
     let tipoMovimiento = "ENTRADA";
@@ -476,14 +489,37 @@
     let codigoProcesado = false;
     let modoEscaneo = "buscar";
     let numeroSolicitud = 0;
+    let productosSinCodigo = [];
 
-    const $ = id => document.getElementById(id);
+    // =================================================
+    // MENÚ
+    // =================================================
 
-    function mostrarEstado(mensaje) {
-      $("estado").textContent = mensaje;
+    async function cambiarVista(nombre) {
+      if (escanerActivo) await detenerEscaner();
+
+      document.querySelectorAll(".vista").forEach(vista => {
+        vista.classList.toggle("activa", vista.id === "vista-" + nombre);
+      });
+
+      document.querySelectorAll("nav button").forEach(boton => {
+        boton.classList.toggle("activo", boton.dataset.vista === nombre);
+      });
+
+      if (nombre === "movimientos") actualizarPanelMovimiento();
+      if (nombre === "historial") actualizarPanelHistorial();
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // JSONP: mantiene la compatibilidad con GitHub Pages y Apps Script.
+    document.querySelectorAll("nav button").forEach(boton => {
+      boton.addEventListener("click", () => cambiarVista(boton.dataset.vista));
+    });
+
+    // =================================================
+    // COMUNICACIÓN CON APPS SCRIPT POR JSONP
+    // =================================================
+
     function llamarServidor(parametros) {
       return new Promise((resolve, reject) => {
         const callback = "glowRespuesta_" +
@@ -494,9 +530,7 @@
 
         const temporizador = setTimeout(() => {
           finalizar();
-          reject(new Error(
-            "La consulta tardó demasiado. Intenta nuevamente."
-          ));
+          reject(new Error("La consulta tardó demasiado. Intenta nuevamente."));
         }, 20000);
 
         function finalizar() {
@@ -504,9 +538,7 @@
           terminado = true;
           clearTimeout(temporizador);
           script.remove();
-          try {
-            delete window[callback];
-          } catch (e) {}
+          try { delete window[callback]; } catch (e) {}
         }
 
         window[callback] = resultado => {
@@ -516,9 +548,7 @@
 
         script.onerror = () => {
           finalizar();
-          reject(new Error(
-            "No se pudo conectar con Google Sheets."
-          ));
+          reject(new Error("No se pudo conectar con Google Sheets."));
         };
 
         const query = new URLSearchParams({
@@ -532,50 +562,62 @@
       });
     }
 
+    function texto(id, valor) {
+      $(id).textContent =
+        valor === null || valor === undefined || valor === ""
+          ? "—"
+          : String(valor);
+    }
+
+    function mostrarImagen(url, imagenId, contenedorId) {
+      const imagen = $(imagenId);
+      const contenedor = $(contenedorId);
+
+      imagen.onerror = () => {
+        imagen.removeAttribute("src");
+        contenedor.style.display = "none";
+      };
+
+      imagen.onload = () => {
+        contenedor.style.display = "block";
+      };
+
+      contenedor.style.display = "none";
+      imagen.removeAttribute("src");
+
+      const limpia = String(url || "").trim();
+
+      if (/^https:\/\/\S+$/i.test(limpia)) {
+        imagen.src = limpia;
+      }
+    }
+
     // =================================================
     // BÚSQUEDA DE PRODUCTO
     // =================================================
 
-    function limpiarProducto() {
-      productoActual = null;
-
-      $("tarjetaProducto").style.display = "none";
-      $("panelMovimiento").classList.add("oculto");
-      $("panelHistorial").classList.add("oculto");
-
-      $("listaHistorial").replaceChildren();
-      $("imagenProducto").removeAttribute("src");
-      $("contenedorImagen").style.display = "none";
-      $("nombreProducto").textContent = "";
-      $("alertaStock").textContent = "";
-    }
-
-    function mostrarStock(stock, minimo) {
+    function mostrarAlertaStock(stock, minimo) {
+      const alerta = $("alertaStock");
       const s = Number(stock);
       const m = Number(minimo);
-      const alerta = $("alertaStock");
 
-      $("stock").textContent = stock;
-      $("stockMinimo").textContent = minimo;
-      alerta.className = "estado-stock";
+      alerta.className = "alerta";
 
       if (
-        stock === "" ||
-        minimo === "" ||
-        !Number.isFinite(s) ||
-        !Number.isFinite(m)
+        stock === "" || minimo === "" ||
+        !Number.isFinite(s) || !Number.isFinite(m)
       ) {
-        alerta.textContent = "⚠️ Revisa los datos del inventario.";
-        alerta.classList.add("stock-amarillo");
+        alerta.textContent = "⚠️ Revisa los datos de inventario.";
+        alerta.classList.add("amarillo");
       } else if (s <= 0) {
         alerta.textContent = "🔴 Producto agotado";
-        alerta.classList.add("stock-rojo");
+        alerta.classList.add("rojo");
       } else if (s <= m) {
         alerta.textContent = "⚠️ Stock bajo";
-        alerta.classList.add("stock-amarillo");
+        alerta.classList.add("amarillo");
       } else {
         alerta.textContent = "✅ Existencias suficientes";
-        alerta.classList.add("stock-verde");
+        alerta.classList.add("verde");
       }
     }
 
@@ -583,14 +625,14 @@
       const codigo = $("codigo").value.trim();
 
       if (!codigo) {
-        mostrarEstado("Escribe o escanea un código de barras.");
+        $("estado").textContent = "Escribe o escanea un código de barras.";
         return;
       }
 
       const solicitud = ++numeroSolicitud;
       $("buscar").disabled = true;
-      limpiarProducto();
-      mostrarEstado("Buscando producto...");
+      $("estado").textContent = "Buscando producto...";
+      $("tarjetaProducto").classList.add("oculto");
 
       try {
         const resultado = await llamarServidor({
@@ -601,66 +643,61 @@
         if (solicitud !== numeroSolicitud) return;
 
         if (!resultado || !resultado.encontrado) {
-          mostrarEstado(
-            resultado?.mensaje || "No se encontró el producto."
-          );
+          productoActual = null;
+          $("estado").textContent =
+            resultado?.mensaje || "No se encontró el producto.";
+          actualizarPanelMovimiento();
+          actualizarPanelHistorial();
           return;
         }
 
         productoActual = resultado;
 
-        $("codigo").value = resultado.codigoBarras || codigo;
-        $("idProducto").value = resultado.id || "";
-        $("nombreProducto").textContent = resultado.nombre || "";
-        $("precio").textContent = resultado.precio || "";
-        $("categoria").textContent = resultado.categoria || "";
+        texto("nombreBuscar", resultado.nombre);
+        texto("idBuscar", resultado.id);
+        texto("precioBuscar", resultado.precio);
+        texto("categoriaBuscar", resultado.categoria);
+        texto("stockBuscar", resultado.stock);
+        texto("minimoBuscar", resultado.stockMinimo);
+        texto("codigoBuscar", resultado.codigoBarras);
 
-        $("tarjetaProducto").style.display = "block";
-        mostrarStock(resultado.stock, resultado.stockMinimo);
+        mostrarImagen(
+          resultado.imagen,
+          "imagenBuscar",
+          "imagenBuscarWrap"
+        );
 
-        const urlImagen = String(resultado.imagen || "").trim();
+        mostrarAlertaStock(resultado.stock, resultado.stockMinimo);
+        $("tarjetaProducto").classList.remove("oculto");
+        $("estado").textContent = "✅ Producto encontrado.";
 
-        if (/^https:\/\/\S+$/i.test(urlImagen)) {
-          $("imagenProducto").onload = () => {
-            $("contenedorImagen").style.display = "block";
-          };
-
-          $("imagenProducto").onerror = () => {
-            $("imagenProducto").removeAttribute("src");
-            $("contenedorImagen").style.display = "none";
-          };
-
-          $("imagenProducto").src = urlImagen;
-        }
-
-        $("productoMovimiento").textContent =
-          resultado.nombre + " · ID: " + resultado.id;
-
-        $("panelMovimiento").classList.remove("oculto");
-        $("panelHistorial").classList.remove("oculto");
-
-        mostrarEstado("✅ Producto encontrado.");
-
-        await cargarHistorial();
+        actualizarPanelMovimiento();
+        actualizarPanelHistorial();
 
       } catch (error) {
         if (solicitud === numeroSolicitud) {
-          mostrarEstado("⚠️ " + error.message);
+          $("estado").textContent = "⚠️ " + error.message;
         }
       } finally {
-        if (solicitud === numeroSolicitud) {
-          $("buscar").disabled = false;
-        }
+        if (solicitud === numeroSolicitud) $("buscar").disabled = false;
       }
     }
 
+    $("buscar").addEventListener("click", buscarProducto);
+
+    $("codigo").addEventListener("keydown", evento => {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        buscarProducto();
+      }
+    });
+
     // =================================================
-    // BUSCAR PRODUCTOS QUE NO TIENEN CÓDIGO
+    // BÚSQUEDA Y VISTA PREVIA PARA ASIGNAR CÓDIGO
     // =================================================
 
     async function buscarProductosSinCodigo() {
       const consulta = $("consultaSinCodigo").value.trim();
-      const selector = $("productoSinCodigo");
       const boton = $("buscarSinCodigo");
 
       if (consulta.length < 2) {
@@ -682,6 +719,9 @@
           throw new Error(resultado.mensaje || "No se pudo buscar.");
         }
 
+        productosSinCodigo = resultado.productos || [];
+
+        const selector = $("productoSinCodigo");
         selector.replaceChildren();
 
         const inicial = document.createElement("option");
@@ -689,19 +729,19 @@
         inicial.textContent = "Selecciona un producto";
         selector.appendChild(inicial);
 
-        const productos = resultado.productos || [];
-
-        productos.forEach(producto => {
+        productosSinCodigo.forEach(producto => {
           const opcion = document.createElement("option");
           opcion.value = producto.id;
-          opcion.textContent =
-            producto.id + " — " + producto.nombre;
+          opcion.textContent = producto.id + " — " + producto.nombre;
           selector.appendChild(opcion);
         });
 
-        $("estadoAsignacion").textContent = productos.length
-          ? "Se encontraron " + productos.length + " productos sin código."
-          : "No se encontraron productos sin código con esa búsqueda.";
+        $("estadoAsignacion").textContent = productosSinCodigo.length
+          ? "Se encontraron " + productosSinCodigo.length +
+            " productos. Selecciona uno para ver su imagen."
+          : "No hay productos sin código que coincidan con la búsqueda.";
+
+        mostrarVistaPreviaAsignacion();
 
       } catch (error) {
         $("estadoAsignacion").textContent = "⚠️ " + error.message;
@@ -710,39 +750,76 @@
       }
     }
 
-    // =================================================
-    // ASIGNAR UN CÓDIGO NUEVO
-    // =================================================
+    function mostrarVistaPreviaAsignacion() {
+      const id = $("productoSinCodigo").value;
+      const producto = productosSinCodigo.find(p => p.id === id);
+      const tarjeta = $("vistaPreviaAsignacion");
+
+      if (!producto) {
+        tarjeta.classList.add("oculto");
+        return;
+      }
+
+      tarjeta.classList.remove("oculto");
+
+      texto("nombreAsignacion", producto.nombre);
+      texto("idAsignacion", producto.id);
+      texto("categoriaAsignacion", producto.categoria);
+      texto("precioAsignacion", producto.precio);
+
+      mostrarImagen(
+        producto.imagen,
+        "imagenAsignacion",
+        "imagenAsignacionWrap"
+      );
+
+      $("estadoInventarioAsignacion").textContent =
+        "Se comprobará el inventario al guardar. Si no existe un registro, " +
+        "se creará con stock inicial 0 y stock mínimo 0.";
+    }
+
+    $("buscarSinCodigo").addEventListener("click", buscarProductosSinCodigo);
+    $("productoSinCodigo").addEventListener(
+      "change", mostrarVistaPreviaAsignacion
+    );
+
+    $("consultaSinCodigo").addEventListener("keydown", evento => {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        buscarProductosSinCodigo();
+      }
+    });
+
+    $("limpiarCodigo").addEventListener("click", () => {
+      $("codigoNuevo").value = "";
+      $("estadoAsignacion").textContent = "Código borrado. Puedes escanear otro.";
+    });
 
     async function guardarCodigoNuevo() {
       const id = $("productoSinCodigo").value;
       const codigo = $("codigoNuevo").value.trim();
+      const producto = productosSinCodigo.find(p => p.id === id);
       const boton = $("guardarCodigoNuevo");
 
-      if (!id) {
-        $("estadoAsignacion").textContent =
-          "Selecciona primero un producto.";
+      if (!id || !producto) {
+        $("estadoAsignacion").textContent = "Selecciona un producto.";
         return;
       }
 
       if (!codigo) {
-        $("estadoAsignacion").textContent =
-          "Escanea primero el código de barras.";
+        $("estadoAsignacion").textContent = "Escanea primero el código.";
         return;
       }
 
-      const nombreSeleccionado =
-        $("productoSinCodigo").selectedOptions[0].textContent;
+      const confirmado = confirm(
+        "¿Asignar el código " + codigo + " a:\n" +
+        producto.nombre + "\nID: " + producto.id + "?"
+      );
 
-      if (!confirm(
-        "¿Asignar el código " + codigo + " al producto " +
-        nombreSeleccionado + "?"
-      )) {
-        return;
-      }
+      if (!confirmado) return;
 
       boton.disabled = true;
-      $("estadoAsignacion").textContent = "Guardando código...";
+      $("estadoAsignacion").textContent = "Guardando código e inventario...";
 
       try {
         const resultado = await llamarServidor({
@@ -752,16 +829,19 @@
         });
 
         if (!resultado || !resultado.exito) {
-          throw new Error(
-            resultado?.mensaje || "No se pudo guardar el código."
-          );
+          throw new Error(resultado?.mensaje || "No se pudo asignar el código.");
         }
 
         $("estadoAsignacion").textContent = "✅ " + resultado.mensaje;
-        $("codigo").value = codigo;
         $("codigoNuevo").value = "";
 
+        // Se refresca la búsqueda para que el producto asignado desaparezca
+        // de la lista de productos que aún no tienen código.
         await buscarProductosSinCodigo();
+
+        // Deja el producto recién asignado disponible en la sección Buscar.
+        $("codigo").value = codigo;
+        await cambiarVista("buscar");
         await buscarProducto();
 
       } catch (error) {
@@ -771,23 +851,44 @@
       }
     }
 
+    $("guardarCodigoNuevo").addEventListener("click", guardarCodigoNuevo);
+
     // =================================================
     // ENTRADAS Y SALIDAS
     // =================================================
 
     function seleccionarTipo(tipo) {
       tipoMovimiento = tipo;
+      $("btnEntrada").classList.toggle("elegido", tipo === "ENTRADA");
+      $("btnSalida").classList.toggle("elegido", tipo === "SALIDA");
+    }
 
-      $("btnEntrada").className =
-        tipo === "ENTRADA" ? "seleccionado-entrada" : "";
+    $("btnEntrada").addEventListener("click", () => seleccionarTipo("ENTRADA"));
+    $("btnSalida").addEventListener("click", () => seleccionarTipo("SALIDA"));
 
-      $("btnSalida").className =
-        tipo === "SALIDA" ? "seleccionado-salida" : "";
+    function actualizarPanelMovimiento() {
+      if (!productoActual) {
+        $("productoMovimiento").textContent =
+          "Primero busca un producto en el menú Buscar.";
+        $("formularioMovimiento").classList.add("oculto");
+        return;
+      }
+
+      $("productoMovimiento").textContent =
+        "Producto seleccionado: " + productoActual.nombre;
+
+      $("nombreMovimiento").textContent = productoActual.nombre;
+      $("stockMovimiento").textContent =
+        "Stock disponible: " + productoActual.stock +
+        " · Stock mínimo: " + productoActual.stockMinimo;
+
+      $("formularioMovimiento").classList.remove("oculto");
     }
 
     async function guardarMovimiento() {
       if (!productoActual) {
-        mostrarEstado("Primero busca un producto.");
+        $("estadoMovimiento").textContent =
+          "Primero busca un producto en el menú Buscar.";
         return;
       }
 
@@ -796,23 +897,22 @@
       const motivo = $("motivo").value.trim();
 
       if (
-        !cantidadTexto ||
-        !Number.isSafeInteger(cantidad) ||
-        cantidad <= 0
+        !cantidadTexto || !Number.isSafeInteger(cantidad) || cantidad <= 0
       ) {
-        mostrarEstado("La cantidad debe ser un entero mayor que cero.");
+        $("estadoMovimiento").textContent =
+          "La cantidad debe ser un entero mayor que cero.";
         return;
       }
 
       if (!motivo) {
-        mostrarEstado("Escribe el motivo del movimiento.");
+        $("estadoMovimiento").textContent = "Escribe el motivo del movimiento.";
         $("motivo").focus();
         return;
       }
 
       const boton = $("guardarMovimiento");
       boton.disabled = true;
-      mostrarEstado("Registrando movimiento...");
+      $("estadoMovimiento").textContent = "Registrando movimiento...";
 
       try {
         const resultado = await llamarServidor({
@@ -831,34 +931,45 @@
 
         $("cantidad").value = "1";
         $("motivo").value = "";
+        $("estadoMovimiento").textContent =
+          "✅ " + resultado.mensaje + " Stock nuevo: " + resultado.stockNuevo;
 
-        mostrarEstado(
-          "✅ " + resultado.mensaje +
-          " Stock actualizado: " + resultado.stockNuevo
-        );
-
-        // Consulta nuevamente el stock y el historial.
+        // Refresca los datos desde la hoja para mostrar el stock real.
+        $("codigo").value = productoActual.codigoBarras;
         await buscarProducto();
 
       } catch (error) {
-        mostrarEstado("⚠️ " + error.message);
+        $("estadoMovimiento").textContent = "⚠️ " + error.message;
       } finally {
         boton.disabled = false;
       }
     }
 
+    $("guardarMovimiento").addEventListener("click", guardarMovimiento);
+
     // =================================================
     // HISTORIAL
     // =================================================
 
+    function actualizarPanelHistorial() {
+      $("productoHistorial").textContent = productoActual
+        ? "Producto: " + productoActual.nombre + " · ID: " + productoActual.id
+        : "Primero busca un producto en el menú Buscar.";
+    }
+
     async function cargarHistorial() {
-      if (!productoActual) return;
+      if (!productoActual) {
+        $("estadoHistorial").textContent =
+          "Primero busca un producto en el menú Buscar.";
+        return;
+      }
 
       const boton = $("cargarHistorial");
       const lista = $("listaHistorial");
 
       boton.disabled = true;
-      lista.textContent = "Cargando historial...";
+      $("estadoHistorial").textContent = "Cargando historial...";
+      lista.replaceChildren();
 
       try {
         const resultado = await llamarServidor({
@@ -867,205 +978,176 @@
         });
 
         if (resultado && resultado.exito === false) {
-          throw new Error(resultado.mensaje || "No se pudo cargar.");
+          throw new Error(resultado.mensaje || "No se pudo cargar el historial.");
         }
-
-        lista.replaceChildren();
 
         const movimientos = resultado.movimientos || [];
 
-        if (movimientos.length === 0) {
-          lista.textContent =
+        if (!movimientos.length) {
+          $("estadoHistorial").textContent =
             "Todavía no hay movimientos para este producto.";
           return;
         }
 
-        movimientos.forEach(movimiento => {
+        $("estadoHistorial").textContent =
+          "Se muestran los últimos " + movimientos.length + " movimientos.";
+
+        movimientos.forEach(mov => {
           const tarjeta = document.createElement("article");
           tarjeta.className = "movimiento";
 
           const cabecera = document.createElement("div");
-          cabecera.className = "movimiento-cabecera";
+          cabecera.className = "mov-cabecera";
 
           const etiqueta = document.createElement("span");
           etiqueta.className = "etiqueta " +
-            (movimiento.tipo === "ENTRADA"
-              ? "etiqueta-entrada"
-              : "etiqueta-salida");
-          etiqueta.textContent = movimiento.tipo;
+            (mov.tipo === "ENTRADA" ? "entrada" : "salida");
+          etiqueta.textContent = mov.tipo;
 
           const fecha = document.createElement("small");
-          fecha.textContent = movimiento.fecha;
+          fecha.textContent = mov.fecha;
 
           cabecera.append(etiqueta, fecha);
 
           const cantidad = document.createElement("p");
-          cantidad.textContent = "Cantidad: " + movimiento.cantidad;
+          cantidad.textContent = "Cantidad: " + mov.cantidad;
 
           const motivo = document.createElement("p");
-          motivo.textContent = "Motivo: " + movimiento.motivo;
+          motivo.textContent = "Motivo: " + mov.motivo;
 
           const stock = document.createElement("p");
           stock.textContent =
-            "Stock: " + movimiento.stockAnterior +
-            " → " + movimiento.stockNuevo;
+            "Stock anterior: " + mov.stockAnterior +
+            " → Stock nuevo: " + mov.stockNuevo;
 
           tarjeta.append(cabecera, cantidad, motivo, stock);
           lista.appendChild(tarjeta);
         });
 
       } catch (error) {
-        lista.textContent = "⚠️ " + error.message;
+        $("estadoHistorial").textContent = "⚠️ " + error.message;
       } finally {
         boton.disabled = false;
       }
     }
 
+    $("cargarHistorial").addEventListener("click", cargarHistorial);
+
+    $("irMovimiento").addEventListener("click", () => cambiarVista("movimientos"));
+    $("irHistorial").addEventListener("click", async () => {
+      await cambiarVista("historial");
+      await cargarHistorial();
+    });
+
     // =================================================
-    // ESCÁNER DE CÓDIGOS DE BARRAS
+    // LECTOR DE CÓDIGOS
     // =================================================
 
-    async function iniciarEscaner() {
-      if (escanerActivo) return;
+    async function iniciarEscaner(modo) {
+      if (escanerActivo) await detenerEscaner();
 
       if (typeof Html5Qrcode === "undefined") {
-        mostrarEstado(
-          "No se pudo cargar el lector. Revisa tu conexión a Internet."
-        );
+        const mensaje = "No se cargó el lector. Revisa tu conexión a Internet.";
+        if (modo === "asignar") $("estadoAsignacion").textContent = mensaje;
+        else $("estado").textContent = mensaje;
         return;
       }
 
-      try {
-        if (!escaner) {
-          escaner = new Html5Qrcode("lector");
-        }
+      modoEscaneo = modo;
+      codigoProcesado = false;
 
-        codigoProcesado = false;
-        mostrarEstado("Solicitando acceso a la cámara...");
+      const contenedor = modo === "asignar" ? "lectorAsignacion" : "lector";
+
+      try {
+        escaner = new Html5Qrcode(contenedor);
+
+        const formatos = [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.ITF
+        ];
+
+        if (modo === "asignar") {
+          $("estadoAsignacion").textContent =
+            "Cámara activa: coloca la etiqueta frente a la cámara.";
+        } else {
+          $("estado").textContent =
+            "Cámara activa: coloca la etiqueta frente a la cámara.";
+        }
 
         await escaner.start(
           { facingMode: "environment" },
           {
             fps: 10,
             qrbox: { width: 250, height: 150 },
-            formatsToSupport: [
-              Html5QrcodeSupportedFormats.EAN_13,
-              Html5QrcodeSupportedFormats.EAN_8,
-              Html5QrcodeSupportedFormats.UPC_A,
-              Html5QrcodeSupportedFormats.UPC_E,
-              Html5QrcodeSupportedFormats.CODE_128,
-              Html5QrcodeSupportedFormats.CODE_39,
-              Html5QrcodeSupportedFormats.ITF
-            ]
+            formatsToSupport: formatos
           },
-
-          async texto => {
+          async codigoLeido => {
             if (!escanerActivo || codigoProcesado) return;
 
             codigoProcesado = true;
+            const modoDetectado = modoEscaneo;
+
             await detenerEscaner();
 
-            if (modoEscaneo === "asignar") {
-              $("codigoNuevo").value = texto;
+            if (modoDetectado === "asignar") {
+              $("codigoNuevo").value = codigoLeido;
               $("estadoAsignacion").textContent =
-                "Código detectado. Verifica el producto y guarda la asignación.";
-              modoEscaneo = "buscar";
-              return;
+                "Código detectado: " + codigoLeido +
+                ". Verifica el producto y guarda la asignación.";
+            } else {
+              $("codigo").value = codigoLeido;
+              await cambiarVista("buscar");
+              await buscarProducto();
             }
-
-            $("codigo").value = texto;
-            await buscarProducto();
           },
-
           () => {}
         );
 
         escanerActivo = true;
-        $("iniciar").classList.add("oculto");
-        $("detener").classList.remove("oculto");
-
-        mostrarEstado("Cámara activa. Coloca el código frente a ella.");
+        $("iniciar").classList.toggle("oculto", modo !== "buscar");
+        $("detener").classList.toggle("oculto", modo !== "buscar");
 
       } catch (error) {
         escanerActivo = false;
         modoEscaneo = "buscar";
 
-        mostrarEstado(
-          "No se pudo abrir la cámara. Revisa los permisos del navegador."
-        );
+        const mensaje =
+          "No se pudo abrir la cámara. Revisa los permisos del navegador " +
+          "y asegúrate de abrir la página mediante HTTPS.";
+
+        if (modo === "asignar") {
+          $("estadoAsignacion").textContent = mensaje;
+        } else {
+          $("estado").textContent = mensaje;
+        }
       }
     }
 
     async function detenerEscaner() {
-      if (escaner && escanerActivo) {
-        try {
-          await escaner.stop();
-        } catch (error) {}
+      if (escaner) {
+        if (escanerActivo) {
+          try { await escaner.stop(); } catch (error) {}
+        }
+
+        try { await escaner.clear(); } catch (error) {}
       }
 
       escanerActivo = false;
       $("iniciar").classList.remove("oculto");
       $("detener").classList.add("oculto");
-
-      if (escaner) {
-        try {
-          await escaner.clear();
-        } catch (error) {}
-      }
     }
 
-    // =================================================
-    // EVENTOS DE LA INTERFAZ
-    // =================================================
-
-    $("buscar").addEventListener("click", buscarProducto);
-
-    $("codigo").addEventListener("keydown", evento => {
-      if (evento.key === "Enter") {
-        evento.preventDefault();
-        buscarProducto();
-      }
-    });
-
-    $("buscarSinCodigo").addEventListener(
-      "click", buscarProductosSinCodigo
-    );
-
-    $("consultaSinCodigo").addEventListener("keydown", evento => {
-      if (evento.key === "Enter") {
-        evento.preventDefault();
-        buscarProductosSinCodigo();
-      }
-    });
-
-    $("guardarCodigoNuevo").addEventListener(
-      "click", guardarCodigoNuevo
-    );
-
-    $("escanearNuevoCodigo").addEventListener("click", async () => {
-      modoEscaneo = "asignar";
-      $("codigoNuevo").value = "";
-      await iniciarEscaner();
-    });
-
-    $("btnEntrada").addEventListener(
-      "click", () => seleccionarTipo("ENTRADA")
-    );
-
-    $("btnSalida").addEventListener(
-      "click", () => seleccionarTipo("SALIDA")
-    );
-
-    $("guardarMovimiento").addEventListener(
-      "click", guardarMovimiento
-    );
-
-    $("cargarHistorial").addEventListener(
-      "click", cargarHistorial
-    );
-
-    $("iniciar").addEventListener("click", iniciarEscaner);
+    $("iniciar").addEventListener("click", () => iniciarEscaner("buscar"));
     $("detener").addEventListener("click", detenerEscaner);
+
+    $("escanearNuevoCodigo").addEventListener(
+      "click", () => iniciarEscaner("asignar")
+    );
   </script>
 </body>
 </html>
