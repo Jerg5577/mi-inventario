@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1749a8">
   <title>Sistema Glow | Inventario</title>
+
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <style>
@@ -76,6 +77,7 @@
     }
 
     input, select, textarea {
+      display: block;
       width: 100%;
       min-height: 46px;
       border: 1px solid #cbd4e1;
@@ -122,11 +124,6 @@
       color: #203b67;
     }
 
-    .peligro {
-      background: #b42318;
-      color: white;
-    }
-
     .ancho { width: 100%; }
 
     .fila-botones {
@@ -152,13 +149,11 @@
       margin-top: 12px;
     }
 
-    #lector video {
-      border-radius: 10px;
-    }
+    #lector video { border-radius: 10px; }
 
-    .producto {
-      display: none;
-    }
+    .oculto { display: none !important; }
+
+    .producto { display: none; }
 
     .imagen-wrap {
       display: none;
@@ -231,19 +226,17 @@
       color: var(--texto);
     }
 
-    .tipo-selector button.seleccionado-entrada {
+    .tipo-selector .seleccionado-entrada {
       border-color: var(--verde);
       background: #e1f5e8;
       color: var(--verde);
     }
 
-    .tipo-selector button.seleccionado-salida {
+    .tipo-selector .seleccionado-salida {
       border-color: var(--rojo);
       background: #ffe4e4;
       color: var(--rojo);
     }
-
-    .oculto { display: none !important; }
 
     .movimiento {
       border: 1px solid var(--borde);
@@ -286,6 +279,12 @@
       padding: 0 12px;
     }
 
+    .separador {
+      border: 0;
+      border-top: 1px solid var(--borde);
+      margin: 16px 0;
+    }
+
     @media (max-width: 360px) {
       main { width: calc(100% - 16px); }
       .panel { padding: 13px; }
@@ -301,16 +300,21 @@
   </header>
 
   <main>
+    <!-- BÚSQUEDA PRINCIPAL -->
     <section class="panel">
       <h2>🔎 Buscar producto</h2>
+
       <div id="estado" role="status" aria-live="polite">
         Escanea un código o escríbelo manualmente.
       </div>
 
       <label for="codigo">Código de barras</label>
-      <input id="codigo" type="text"
-             placeholder="Escribe o escanea el código"
-             autocomplete="off">
+      <input
+        id="codigo"
+        type="text"
+        placeholder="Escribe o escanea el código"
+        autocomplete="off"
+      >
 
       <button class="primario ancho" id="buscar" type="button">
         Buscar producto
@@ -324,9 +328,56 @@
           Detener cámara
         </button>
       </div>
+
       <div id="lector"></div>
     </section>
 
+    <!-- ASIGNAR CÓDIGO A PRODUCTOS EXISTENTES -->
+    <section class="panel">
+      <h2>🏷️ Asignar código de barras</h2>
+
+      <p style="color:#637086;font-size:14px;line-height:1.5">
+        Busca un producto que ya esté en Google Sheets y todavía no tenga
+        código de barras.
+      </p>
+
+      <label for="consultaSinCodigo">Nombre o ID del producto</label>
+      <input
+        id="consultaSinCodigo"
+        type="search"
+        placeholder="Ej.: Nutriplus o 1001643"
+      >
+
+      <button id="buscarSinCodigo" class="primario ancho" type="button">
+        Buscar productos sin código
+      </button>
+
+      <label for="productoSinCodigo">Producto encontrado</label>
+      <select id="productoSinCodigo">
+        <option value="">Primero busca un producto</option>
+      </select>
+
+      <label for="codigoNuevo">Código de barras detectado</label>
+      <input
+        id="codigoNuevo"
+        type="text"
+        placeholder="Escanea un código"
+        readonly
+      >
+
+      <button id="escanearNuevoCodigo" class="secundario ancho" type="button">
+        📷 Escanear código para asignar
+      </button>
+
+      <button id="guardarCodigoNuevo" class="primario ancho" type="button">
+        Guardar código en el producto
+      </button>
+
+      <p id="estadoAsignacion" role="status"
+         style="font-size:14px;line-height:1.5"></p>
+    </section>
+
+    <!-- INFORMACIÓN DEL PRODUCTO -->
     <section id="tarjetaProducto" class="panel producto">
       <h2>Producto encontrado</h2>
 
@@ -359,14 +410,14 @@
       <input id="idProducto" type="hidden">
     </section>
 
+    <!-- MOVIMIENTOS -->
     <section id="panelMovimiento" class="panel oculto">
       <h2>📝 Registrar movimiento</h2>
       <p id="productoMovimiento" style="margin-top:0;color:#637086"></p>
 
       <label>Tipo de movimiento</label>
       <div class="tipo-selector">
-        <button type="button" id="btnEntrada"
-                class="seleccionado-entrada">
+        <button type="button" id="btnEntrada" class="seleccionado-entrada">
           ＋ Entrada
         </button>
         <button type="button" id="btnSalida">
@@ -375,63 +426,77 @@
       </div>
 
       <label for="cantidad">Cantidad de unidades</label>
-      <input id="cantidad" type="number" min="1" step="1" value="1"
-             inputmode="numeric">
+      <input
+        id="cantidad"
+        type="number"
+        min="1"
+        step="1"
+        value="1"
+        inputmode="numeric"
+      >
 
       <label for="motivo">Motivo del movimiento</label>
-      <textarea id="motivo" maxlength="200"
+      <textarea
+        id="motivo"
+        maxlength="200"
         placeholder="Ej.: mercancía recibida, venta, producto dañado..."
-        required></textarea>
+      ></textarea>
 
       <button id="guardarMovimiento" class="primario ancho" type="button">
         Guardar movimiento
       </button>
-      <p class="nota">
-        Revisa el producto, el tipo y la cantidad antes de guardar.
-      </p>
     </section>
 
+    <!-- HISTORIAL -->
     <section id="panelHistorial" class="panel oculto">
       <h2>📋 Historial del producto</h2>
+
       <button id="cargarHistorial" class="secundario ancho" type="button">
         Actualizar historial
       </button>
+
       <div id="listaHistorial"></div>
     </section>
 
     <p class="nota">
-      Los movimientos modifican las existencias de Google Sheets.
-      Usa esta herramienta únicamente con productos e información autorizados.
+      Sistema Glow consulta y actualiza Google Sheets. Verifica el producto,
+      el tipo y la cantidad antes de guardar un movimiento.
     </p>
   </main>
 
   <script>
+    // Usa la URL /exec de tu implementación actual.
     const URL_APPS_SCRIPT =
       "https://script.google.com/macros/s/AKfycbzrxb4r6eMwEd6t0bs3VEpsy8CE6SYOT_v2pzi7-kBOVZxZF6Z-YWkHKNSzf3ronKuw/exec";
 
-    let numeroSolicitud = 0;
     let productoActual = null;
     let tipoMovimiento = "ENTRADA";
     let escaner = null;
     let escanerActivo = false;
     let codigoProcesado = false;
+    let modoEscaneo = "buscar";
+    let numeroSolicitud = 0;
 
     const $ = id => document.getElementById(id);
 
-    function estado(texto) {
-      $("estado").textContent = texto;
+    function mostrarEstado(mensaje) {
+      $("estado").textContent = mensaje;
     }
 
+    // JSONP: mantiene la compatibilidad con GitHub Pages y Apps Script.
     function llamarServidor(parametros) {
       return new Promise((resolve, reject) => {
-        const callback = "glowRespuesta_" + Date.now() + "_" +
-          Math.floor(Math.random() * 1000000);
+        const callback = "glowRespuesta_" +
+          Date.now() + "_" + Math.floor(Math.random() * 1000000);
+
         const script = document.createElement("script");
         let terminado = false;
 
         const temporizador = setTimeout(() => {
           finalizar();
-          reject(new Error("La consulta tardó demasiado. Intenta nuevamente."));
+          reject(new Error(
+            "La consulta tardó demasiado. Intenta nuevamente."
+          ));
         }, 20000);
 
         function finalizar() {
@@ -439,7 +504,9 @@
           terminado = true;
           clearTimeout(temporizador);
           script.remove();
-          try { delete window[callback]; } catch (e) {}
+          try {
+            delete window[callback];
+          } catch (e) {}
         }
 
         window[callback] = resultado => {
@@ -449,12 +516,14 @@
 
         script.onerror = () => {
           finalizar();
-          reject(new Error("No se pudo conectar con Google Sheets."));
+          reject(new Error(
+            "No se pudo conectar con Google Sheets."
+          ));
         };
 
         const query = new URLSearchParams({
           ...parametros,
-          callback,
+          callback: callback,
           t: String(Date.now())
         });
 
@@ -463,12 +532,17 @@
       });
     }
 
+    // =================================================
+    // BÚSQUEDA DE PRODUCTO
+    // =================================================
+
     function limpiarProducto() {
       productoActual = null;
+
       $("tarjetaProducto").style.display = "none";
-      $("tarjetaProducto").classList.add("oculto");
       $("panelMovimiento").classList.add("oculto");
       $("panelHistorial").classList.add("oculto");
+
       $("listaHistorial").replaceChildren();
       $("imagenProducto").removeAttribute("src");
       $("contenedorImagen").style.display = "none";
@@ -479,14 +553,18 @@
     function mostrarStock(stock, minimo) {
       const s = Number(stock);
       const m = Number(minimo);
+      const alerta = $("alertaStock");
 
       $("stock").textContent = stock;
       $("stockMinimo").textContent = minimo;
-
-      const alerta = $("alertaStock");
       alerta.className = "estado-stock";
 
-      if (!Number.isFinite(s) || !Number.isFinite(m)) {
+      if (
+        stock === "" ||
+        minimo === "" ||
+        !Number.isFinite(s) ||
+        !Number.isFinite(m)
+      ) {
         alerta.textContent = "⚠️ Revisa los datos del inventario.";
         alerta.classList.add("stock-amarillo");
       } else if (s <= 0) {
@@ -503,78 +581,213 @@
 
     async function buscarProducto() {
       const codigo = $("codigo").value.trim();
+
       if (!codigo) {
-        estado("Escribe o escanea un código de barras.");
+        mostrarEstado("Escribe o escanea un código de barras.");
         return;
       }
 
       const solicitud = ++numeroSolicitud;
       $("buscar").disabled = true;
       limpiarProducto();
-      estado("Buscando producto...");
+      mostrarEstado("Buscando producto...");
 
       try {
         const resultado = await llamarServidor({
           accion: "buscar",
-          codigo
+          codigo: codigo
         });
 
         if (solicitud !== numeroSolicitud) return;
 
         if (!resultado || !resultado.encontrado) {
-          estado(resultado?.mensaje || "No se encontró el producto.");
+          mostrarEstado(
+            resultado?.mensaje || "No se encontró el producto."
+          );
           return;
         }
 
         productoActual = resultado;
+
         $("codigo").value = resultado.codigoBarras || codigo;
+        $("idProducto").value = resultado.id || "";
         $("nombreProducto").textContent = resultado.nombre || "";
         $("precio").textContent = resultado.precio || "";
         $("categoria").textContent = resultado.categoria || "";
-        $("tarjetaProducto").classList.remove("oculto");
-        $("tarjetaProducto").style.display = "block";
 
+        $("tarjetaProducto").style.display = "block";
         mostrarStock(resultado.stock, resultado.stockMinimo);
 
-        const url = String(resultado.imagen || "").trim();
-        if (/^https:\/\/\S+$/i.test(url)) {
+        const urlImagen = String(resultado.imagen || "").trim();
+
+        if (/^https:\/\/\S+$/i.test(urlImagen)) {
           $("imagenProducto").onload = () => {
             $("contenedorImagen").style.display = "block";
           };
+
           $("imagenProducto").onerror = () => {
             $("imagenProducto").removeAttribute("src");
             $("contenedorImagen").style.display = "none";
           };
-          $("imagenProducto").src = url;
+
+          $("imagenProducto").src = urlImagen;
         }
 
         $("productoMovimiento").textContent =
           resultado.nombre + " · ID: " + resultado.id;
+
         $("panelMovimiento").classList.remove("oculto");
         $("panelHistorial").classList.remove("oculto");
 
-        estado("✅ Producto encontrado.");
+        mostrarEstado("✅ Producto encontrado.");
+
         await cargarHistorial();
+
       } catch (error) {
         if (solicitud === numeroSolicitud) {
-          estado("⚠️ " + error.message);
+          mostrarEstado("⚠️ " + error.message);
         }
       } finally {
-        if (solicitud === numeroSolicitud) $("buscar").disabled = false;
+        if (solicitud === numeroSolicitud) {
+          $("buscar").disabled = false;
+        }
       }
     }
 
+    // =================================================
+    // BUSCAR PRODUCTOS QUE NO TIENEN CÓDIGO
+    // =================================================
+
+    async function buscarProductosSinCodigo() {
+      const consulta = $("consultaSinCodigo").value.trim();
+      const selector = $("productoSinCodigo");
+      const boton = $("buscarSinCodigo");
+
+      if (consulta.length < 2) {
+        $("estadoAsignacion").textContent =
+          "Escribe al menos 2 caracteres del nombre o ID.";
+        return;
+      }
+
+      boton.disabled = true;
+      $("estadoAsignacion").textContent = "Buscando productos...";
+
+      try {
+        const resultado = await llamarServidor({
+          accion: "buscarSinCodigo",
+          consulta: consulta
+        });
+
+        if (resultado && resultado.exito === false) {
+          throw new Error(resultado.mensaje || "No se pudo buscar.");
+        }
+
+        selector.replaceChildren();
+
+        const inicial = document.createElement("option");
+        inicial.value = "";
+        inicial.textContent = "Selecciona un producto";
+        selector.appendChild(inicial);
+
+        const productos = resultado.productos || [];
+
+        productos.forEach(producto => {
+          const opcion = document.createElement("option");
+          opcion.value = producto.id;
+          opcion.textContent =
+            producto.id + " — " + producto.nombre;
+          selector.appendChild(opcion);
+        });
+
+        $("estadoAsignacion").textContent = productos.length
+          ? "Se encontraron " + productos.length + " productos sin código."
+          : "No se encontraron productos sin código con esa búsqueda.";
+
+      } catch (error) {
+        $("estadoAsignacion").textContent = "⚠️ " + error.message;
+      } finally {
+        boton.disabled = false;
+      }
+    }
+
+    // =================================================
+    // ASIGNAR UN CÓDIGO NUEVO
+    // =================================================
+
+    async function guardarCodigoNuevo() {
+      const id = $("productoSinCodigo").value;
+      const codigo = $("codigoNuevo").value.trim();
+      const boton = $("guardarCodigoNuevo");
+
+      if (!id) {
+        $("estadoAsignacion").textContent =
+          "Selecciona primero un producto.";
+        return;
+      }
+
+      if (!codigo) {
+        $("estadoAsignacion").textContent =
+          "Escanea primero el código de barras.";
+        return;
+      }
+
+      const nombreSeleccionado =
+        $("productoSinCodigo").selectedOptions[0].textContent;
+
+      if (!confirm(
+        "¿Asignar el código " + codigo + " al producto " +
+        nombreSeleccionado + "?"
+      )) {
+        return;
+      }
+
+      boton.disabled = true;
+      $("estadoAsignacion").textContent = "Guardando código...";
+
+      try {
+        const resultado = await llamarServidor({
+          accion: "asignarCodigo",
+          id: id,
+          codigo: codigo
+        });
+
+        if (!resultado || !resultado.exito) {
+          throw new Error(
+            resultado?.mensaje || "No se pudo guardar el código."
+          );
+        }
+
+        $("estadoAsignacion").textContent = "✅ " + resultado.mensaje;
+        $("codigo").value = codigo;
+        $("codigoNuevo").value = "";
+
+        await buscarProductosSinCodigo();
+        await buscarProducto();
+
+      } catch (error) {
+        $("estadoAsignacion").textContent = "⚠️ " + error.message;
+      } finally {
+        boton.disabled = false;
+      }
+    }
+
+    // =================================================
+    // ENTRADAS Y SALIDAS
+    // =================================================
+
     function seleccionarTipo(tipo) {
       tipoMovimiento = tipo;
+
       $("btnEntrada").className =
         tipo === "ENTRADA" ? "seleccionado-entrada" : "";
+
       $("btnSalida").className =
         tipo === "SALIDA" ? "seleccionado-salida" : "";
     }
 
     async function guardarMovimiento() {
       if (!productoActual) {
-        estado("Primero busca un producto.");
+        mostrarEstado("Primero busca un producto.");
         return;
       }
 
@@ -582,20 +795,24 @@
       const cantidad = Number(cantidadTexto);
       const motivo = $("motivo").value.trim();
 
-      if (!cantidadTexto || !Number.isSafeInteger(cantidad) || cantidad <= 0) {
-        estado("La cantidad debe ser un entero mayor que cero.");
+      if (
+        !cantidadTexto ||
+        !Number.isSafeInteger(cantidad) ||
+        cantidad <= 0
+      ) {
+        mostrarEstado("La cantidad debe ser un entero mayor que cero.");
         return;
       }
 
       if (!motivo) {
-        estado("Escribe el motivo del movimiento.");
+        mostrarEstado("Escribe el motivo del movimiento.");
         $("motivo").focus();
         return;
       }
 
       const boton = $("guardarMovimiento");
       boton.disabled = true;
-      estado("Registrando movimiento...");
+      mostrarEstado("Registrando movimiento...");
 
       try {
         const resultado = await llamarServidor({
@@ -603,33 +820,45 @@
           id: productoActual.id,
           tipo: tipoMovimiento,
           cantidad: String(cantidad),
-          motivo
+          motivo: motivo
         });
 
         if (!resultado || !resultado.exito) {
-          throw new Error(resultado?.mensaje || "No se pudo registrar.");
+          throw new Error(
+            resultado?.mensaje || "No se pudo registrar el movimiento."
+          );
         }
-
-        estado("✅ " + resultado.mensaje +
-          " Stock actualizado: " + resultado.stockNuevo);
 
         $("cantidad").value = "1";
         $("motivo").value = "";
 
-        // Refresca la información desde el servidor.
+        mostrarEstado(
+          "✅ " + resultado.mensaje +
+          " Stock actualizado: " + resultado.stockNuevo
+        );
+
+        // Consulta nuevamente el stock y el historial.
         await buscarProducto();
+
       } catch (error) {
-        estado("⚠️ " + error.message);
+        mostrarEstado("⚠️ " + error.message);
       } finally {
         boton.disabled = false;
       }
     }
 
+    // =================================================
+    // HISTORIAL
+    // =================================================
+
     async function cargarHistorial() {
       if (!productoActual) return;
 
-      $("cargarHistorial").disabled = true;
-      $("listaHistorial").textContent = "Cargando historial...";
+      const boton = $("cargarHistorial");
+      const lista = $("listaHistorial");
+
+      boton.disabled = true;
+      lista.textContent = "Cargando historial...";
 
       try {
         const resultado = await llamarServidor({
@@ -637,16 +866,21 @@
           id: productoActual.id
         });
 
-        const lista = $("listaHistorial");
+        if (resultado && resultado.exito === false) {
+          throw new Error(resultado.mensaje || "No se pudo cargar.");
+        }
+
         lista.replaceChildren();
 
-        if (!resultado || !Array.isArray(resultado.movimientos) ||
-            resultado.movimientos.length === 0) {
-          lista.textContent = "Todavía no hay movimientos para este producto.";
+        const movimientos = resultado.movimientos || [];
+
+        if (movimientos.length === 0) {
+          lista.textContent =
+            "Todavía no hay movimientos para este producto.";
           return;
         }
 
-        resultado.movimientos.forEach(m => {
+        movimientos.forEach(movimiento => {
           const tarjeta = document.createElement("article");
           tarjeta.className = "movimiento";
 
@@ -655,45 +889,59 @@
 
           const etiqueta = document.createElement("span");
           etiqueta.className = "etiqueta " +
-            (m.tipo === "ENTRADA" ? "etiqueta-entrada" : "etiqueta-salida");
-          etiqueta.textContent = m.tipo;
+            (movimiento.tipo === "ENTRADA"
+              ? "etiqueta-entrada"
+              : "etiqueta-salida");
+          etiqueta.textContent = movimiento.tipo;
 
           const fecha = document.createElement("small");
-          fecha.textContent = m.fecha;
+          fecha.textContent = movimiento.fecha;
 
           cabecera.append(etiqueta, fecha);
 
           const cantidad = document.createElement("p");
-          cantidad.textContent = "Cantidad: " + m.cantidad;
+          cantidad.textContent = "Cantidad: " + movimiento.cantidad;
 
           const motivo = document.createElement("p");
-          motivo.textContent = "Motivo: " + m.motivo;
+          motivo.textContent = "Motivo: " + movimiento.motivo;
 
           const stock = document.createElement("p");
-          stock.textContent = "Stock: " + m.stockAnterior + " → " + m.stockNuevo;
+          stock.textContent =
+            "Stock: " + movimiento.stockAnterior +
+            " → " + movimiento.stockNuevo;
 
           tarjeta.append(cabecera, cantidad, motivo, stock);
           lista.appendChild(tarjeta);
         });
+
       } catch (error) {
-        $("listaHistorial").textContent = "⚠️ " + error.message;
+        lista.textContent = "⚠️ " + error.message;
       } finally {
-        $("cargarHistorial").disabled = false;
+        boton.disabled = false;
       }
     }
+
+    // =================================================
+    // ESCÁNER DE CÓDIGOS DE BARRAS
+    // =================================================
 
     async function iniciarEscaner() {
       if (escanerActivo) return;
 
       if (typeof Html5Qrcode === "undefined") {
-        estado("No se pudo cargar el lector. Revisa tu conexión.");
+        mostrarEstado(
+          "No se pudo cargar el lector. Revisa tu conexión a Internet."
+        );
         return;
       }
 
       try {
-        if (!escaner) escaner = new Html5Qrcode("lector");
+        if (!escaner) {
+          escaner = new Html5Qrcode("lector");
+        }
+
         codigoProcesado = false;
-        estado("Solicitando acceso a la cámara...");
+        mostrarEstado("Solicitando acceso a la cámara...");
 
         await escaner.start(
           { facingMode: "environment" },
@@ -710,29 +958,49 @@
               Html5QrcodeSupportedFormats.ITF
             ]
           },
+
           async texto => {
             if (!escanerActivo || codigoProcesado) return;
+
             codigoProcesado = true;
-            $("codigo").value = texto;
             await detenerEscaner();
-            buscarProducto();
+
+            if (modoEscaneo === "asignar") {
+              $("codigoNuevo").value = texto;
+              $("estadoAsignacion").textContent =
+                "Código detectado. Verifica el producto y guarda la asignación.";
+              modoEscaneo = "buscar";
+              return;
+            }
+
+            $("codigo").value = texto;
+            await buscarProducto();
           },
+
           () => {}
         );
 
         escanerActivo = true;
         $("iniciar").classList.add("oculto");
         $("detener").classList.remove("oculto");
-        estado("Cámara activa. Coloca el código frente a ella.");
+
+        mostrarEstado("Cámara activa. Coloca el código frente a ella.");
+
       } catch (error) {
         escanerActivo = false;
-        estado("No se pudo abrir la cámara. Revisa los permisos del navegador.");
+        modoEscaneo = "buscar";
+
+        mostrarEstado(
+          "No se pudo abrir la cámara. Revisa los permisos del navegador."
+        );
       }
     }
 
     async function detenerEscaner() {
       if (escaner && escanerActivo) {
-        try { await escaner.stop(); } catch (e) {}
+        try {
+          await escaner.stop();
+        } catch (error) {}
       }
 
       escanerActivo = false;
@@ -740,24 +1008,64 @@
       $("detener").classList.add("oculto");
 
       if (escaner) {
-        try { await escaner.clear(); } catch (e) {}
+        try {
+          await escaner.clear();
+        } catch (error) {}
       }
     }
 
-    $("buscar").addEventListener("click", buscarProducto);
-    $("btnEntrada").addEventListener("click", () => seleccionarTipo("ENTRADA"));
-    $("btnSalida").addEventListener("click", () => seleccionarTipo("SALIDA"));
-    $("guardarMovimiento").addEventListener("click", guardarMovimiento);
-    $("cargarHistorial").addEventListener("click", cargarHistorial);
-    $("iniciar").addEventListener("click", iniciarEscaner);
-    $("detener").addEventListener("click", detenerEscaner);
+    // =================================================
+    // EVENTOS DE LA INTERFAZ
+    // =================================================
 
-    $("codigo").addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        e.preventDefault();
+    $("buscar").addEventListener("click", buscarProducto);
+
+    $("codigo").addEventListener("keydown", evento => {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
         buscarProducto();
       }
     });
+
+    $("buscarSinCodigo").addEventListener(
+      "click", buscarProductosSinCodigo
+    );
+
+    $("consultaSinCodigo").addEventListener("keydown", evento => {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        buscarProductosSinCodigo();
+      }
+    });
+
+    $("guardarCodigoNuevo").addEventListener(
+      "click", guardarCodigoNuevo
+    );
+
+    $("escanearNuevoCodigo").addEventListener("click", async () => {
+      modoEscaneo = "asignar";
+      $("codigoNuevo").value = "";
+      await iniciarEscaner();
+    });
+
+    $("btnEntrada").addEventListener(
+      "click", () => seleccionarTipo("ENTRADA")
+    );
+
+    $("btnSalida").addEventListener(
+      "click", () => seleccionarTipo("SALIDA")
+    );
+
+    $("guardarMovimiento").addEventListener(
+      "click", guardarMovimiento
+    );
+
+    $("cargarHistorial").addEventListener(
+      "click", cargarHistorial
+    );
+
+    $("iniciar").addEventListener("click", iniciarEscaner);
+    $("detener").addEventListener("click", detenerEscaner);
   </script>
 </body>
 </html>
