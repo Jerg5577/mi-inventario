@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mi Inventario</title>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .contenedor {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #166534;
+            margin-top: 0;
+        }
+
+        .descripcion {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 18px;
+            margin-bottom: 7px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .boton-escanear {
+            background: #15803d;
+            color: white;
+        }
+
+        .boton-detener {
+            background: #dc2626;
+            color: white;
+        }
+
+        .boton-limpiar {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        #lector {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        #estado {
+            margin-top: 18px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            text-align: center;
+            overflow-wrap: anywhere;
+        }
+
+        .nota {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 20px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="contenedor">
+
+        <h1>📦 Mi Inventario</h1>
+
+        <p class="descripcion">
+            Lector de códigos de barras
+        </p>
+
+        <button
+            class="boton-escanear"
+            id="iniciar"
+            onclick="iniciarEscaner()">
+            📷 Abrir cámara
+        </button>
+
+        <div id="lector"></div>
+
+        <div id="estado" role="status" aria-live="polite">
+            Pulsa «Abrir cámara» para comenzar.
+        </div>
+
+        <label for="codigo">Código de barras</label>
+        <input
+            type="text"
+            id="codigo"
+            placeholder="Escanea o escribe el código">
+
+        <label for="producto">Nombre del producto</label>
+        <input
+            type="text"
+            id="producto"
+            placeholder="Ej. Arroz">
+
+        <label for="cantidad">Cantidad</label>
+        <input
+            type="number"
+            id="cantidad"
+            min="1"
+            step="1"
+            value="1">
+
+        <label for="ubicacion">Ubicación</label>
+        <input
+            type="text"
+            id="ubicacion"
+            placeholder="Ej. Bodega A">
+
+        <button
+            class="boton-limpiar"
+            onclick="limpiarCampos()">
+            Limpiar campos
+        </button>
+
+        <p class="nota">
+            Esta es la primera versión de prueba.
+            Los datos todavía no se guardan en Google Sheets.
+        </p>
+
+    </main>
+
+    <script>
+        let escaner = null;
+        let escanerActivo = false;
+
+        async function iniciarEscaner() {
+            const estado = document.getElementById("estado");
+            const boton = document.getElementById("iniciar");
+
+            if (escanerActivo) {
+                estado.textContent = "La cámara ya está funcionando.";
+                return;
+            }
+
+            if (typeof Html5Qrcode === "undefined") {
+                estado.textContent =
+                    "No se pudo cargar el lector. Revisa tu conexión a Internet.";
+                return;
+            }
+
+            boton.disabled = true;
+            estado.textContent = "Solicitando acceso a la cámara...";
+
+            try {
+                escaner = new Html5Qrcode("lector");
+
+                await escaner.start(
+                    { facingMode: "environment" },
+                    {
+                        fps: 10,
+                        qrbox: {
+                            width: 280,
+                            height: 120
+                        },
+                        aspectRatio: 1.5
+                    },
+                    (texto) => {
+                        document.getElementById("codigo").value = texto;
+
+                        estado.textContent =
+                            "✅ Código detectado: " + texto;
+
+                        detenerEscaner();
+                    },
+                    () => {
+                        // No mostrar errores por cada fotograma
+                        // en el que no se detecte un código.
+                    }
+                );
+
+                escanerActivo = true;
+                estado.textContent =
+                    "Cámara activa. Enfoca un código de barras.";
+
+                boton.textContent = "📷 Cámara abierta";
+
+            } catch (error) {
+                estado.textContent =
+                    "No se pudo abrir la cámara. Comprueba los permisos " +
+                    "del navegador y que la página use HTTPS. Detalle: " +
+                    (error.message || error);
+
+                if (escaner) {
+                    try {
+                        await escaner.clear();
+                    } catch (_) {}
+                    escaner = null;
+                }
+
+            } finally {
+                boton.disabled = false;
+            }
+        }
+
+        async function detenerEscaner() {
+            if (!escaner || !escanerActivo) {
+                return;
+            }
+
+            try {
+                await escaner.stop();
+                escanerActivo = false;
+                await escaner.clear();
+
+                document.getElementById("iniciar").textContent =
+                    "📷 Abrir cámara";
+
+            } catch (error) {
+                console.error("Error al detener el escáner:", error);
+            }
+        }
+
+        function limpiarCampos() {
+            document.getElementById("codigo").value = "";
+            document.getElementById("producto").value = "";
+            document.getElementById("cantidad").value = "1";
+            document.getElementById("ubicacion").value = "";
+
+            document.getElementById("estado").textContent =
+                "Campos limpiados. Puedes escanear otro producto.";
+        }
+
+        window.addEventListener("pagehide", () => {
+            if (escanerActivo && escaner) {
+                escaner.stop().catch(() => {});
+            }
+        });
+    </script>
+
+</body>
+</html>
