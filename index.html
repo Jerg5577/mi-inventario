@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -68,6 +69,11 @@
             cursor: pointer;
         }
 
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .boton-escanear {
             background: #15803d;
             color: white;
@@ -107,18 +113,18 @@
 </head>
 
 <body>
-
     <main class="contenedor">
 
         <h1>📦 Mi Inventario</h1>
 
         <p class="descripcion">
-            Lector de códigos de barras
+            Escanea un código o busca un producto
         </p>
 
         <button
             class="boton-escanear"
             id="iniciar"
+            type="button"
             onclick="iniciarEscaner()">
             📷 Abrir cámara
         </button>
@@ -126,20 +132,44 @@
         <div id="lector"></div>
 
         <div id="estado" role="status" aria-live="polite">
-            Pulsa «Abrir cámara» para comenzar.
+            Pulsa «Abrir cámara» o escribe un código de barras.
         </div>
 
         <label for="codigo">Código de barras</label>
         <input
             type="text"
             id="codigo"
-            placeholder="Escanea o escribe el código">
+            placeholder="Escanea o escribe el código"
+            autocomplete="off">
+
+        <button
+            class="boton-escanear"
+            id="buscar"
+            type="button"
+            onclick="buscarProducto()">
+            🔎 Buscar producto
+        </button>
 
         <label for="producto">Nombre del producto</label>
         <input
             type="text"
             id="producto"
-            placeholder="Ej. Arroz">
+            placeholder="Nombre del producto"
+            readonly>
+
+        <label for="precio">Precio</label>
+        <input
+            type="text"
+            id="precio"
+            placeholder="Precio del producto"
+            readonly>
+
+        <label for="categoria">Categoría</label>
+        <input
+            type="text"
+            id="categoria"
+            placeholder="Categoría del producto"
+            readonly>
 
         <label for="cantidad">Cantidad</label>
         <input
@@ -157,38 +187,51 @@
 
         <button
             class="boton-limpiar"
+            type="button"
             onclick="limpiarCampos()">
             Limpiar campos
         </button>
 
         <p class="nota">
-            Esta es la primera versión de prueba.
-            Los datos todavía no se guardan en Google Sheets.
+            Consulta conectada con Google Sheets.
+            Las entradas y salidas de inventario todavía
+            no se registran desde esta página.
         </p>
 
     </main>
 
     <script>
+        // URL de tu aplicación de Google Apps Script.
+        const URL_APPS_SCRIPT =
+            "https://script.google.com/macros/s/AKfycbzrxb4r6eMwEd6t0bs3VEpsy8CE6SYOT_v2pzi7-kBOVZxZF6Z-YWkHKNSzf3ronKuw/exec";
+
         let escaner = null;
         let escanerActivo = false;
+        let consultaPendiente = null;
+        let temporizadorConsulta = null;
+        let numeroConsulta = 0;
+
+        function mostrarEstado(mensaje) {
+            document.getElementById("estado").textContent = mensaje;
+        }
 
         async function iniciarEscaner() {
-            const estado = document.getElementById("estado");
             const boton = document.getElementById("iniciar");
 
             if (escanerActivo) {
-                estado.textContent = "La cámara ya está funcionando.";
+                mostrarEstado("La cámara ya está funcionando.");
                 return;
             }
 
             if (typeof Html5Qrcode === "undefined") {
-                estado.textContent =
-                    "No se pudo cargar el lector. Revisa tu conexión a Internet.";
+                mostrarEstado(
+                    "No se pudo cargar el lector. Revisa tu conexión a Internet."
+                );
                 return;
             }
 
             boton.disabled = true;
-            estado.textContent = "Solicitando acceso a la cámara...";
+            mostrarEstado("Solicitando acceso a la cámara...");
 
             try {
                 escaner = new Html5Qrcode("lector");
@@ -197,37 +240,35 @@
                     { facingMode: "environment" },
                     {
                         fps: 10,
-                        qrbox: {
-                            width: 280,
-                            height: 120
-                        },
+                        qrbox: { width: 280, height: 120 },
                         aspectRatio: 1.5
                     },
                     (texto) => {
-                        document.getElementById("codigo").value = texto;
+                        // Evita procesar varias veces el mismo escaneo.
+                        if (!escanerActivo) return;
 
-                        estado.textContent =
-                            "✅ Código detectado: " + texto;
+                        document.getElementById("codigo").value = texto;
+                        mostrarEstado("Código detectado. Buscando producto...");
 
                         detenerEscaner();
+                        buscarProducto();
                     },
                     () => {
-                        // No mostrar errores por cada fotograma
-                        // en el que no se detecte un código.
+                        // Ignora los fotogramas sin códigos detectados.
                     }
                 );
 
                 escanerActivo = true;
-                estado.textContent =
-                    "Cámara activa. Enfoca un código de barras.";
-
+                mostrarEstado(
+                    "Cámara activa. Enfoca un código de barras."
+                );
                 boton.textContent = "📷 Cámara abierta";
 
             } catch (error) {
-                estado.textContent =
+                mostrarEstado(
                     "No se pudo abrir la cámara. Comprueba los permisos " +
-                    "del navegador y que la página use HTTPS. Detalle: " +
-                    (error.message || error);
+                    "del navegador y que la página use HTTPS."
+                );
 
                 if (escaner) {
                     try {
@@ -242,39 +283,189 @@
         }
 
         async function detenerEscaner() {
-            if (!escaner || !escanerActivo) {
-                return;
-            }
+            if (!escaner) return;
 
             try {
-                await escaner.stop();
-                escanerActivo = false;
+                if (escanerActivo) {
+                    await escaner.stop();
+                    escanerActivo = false;
+                }
+
                 await escaner.clear();
 
                 document.getElementById("iniciar").textContent =
                     "📷 Abrir cámara";
+
+                escaner = null;
 
             } catch (error) {
                 console.error("Error al detener el escáner:", error);
             }
         }
 
-        function limpiarCampos() {
-            document.getElementById("codigo").value = "";
+        function limpiarResultado() {
             document.getElementById("producto").value = "";
+            document.getElementById("precio").value = "";
+            document.getElementById("categoria").value = "";
+        }
+
+        function buscarProducto() {
+            const codigo = document.getElementById("codigo").value.trim();
+            const boton = document.getElementById("buscar");
+
+            if (!codigo) {
+                mostrarEstado("Escribe o escanea un código de barras.");
+                return;
+            }
+
+            // Invalida cualquier consulta anterior.
+            numeroConsulta++;
+            const consultaActual = numeroConsulta;
+
+            if (consultaPendiente) {
+                consultaPendiente.remove();
+                consultaPendiente = null;
+            }
+
+            if (temporizadorConsulta) {
+                clearTimeout(temporizadorConsulta);
+                temporizadorConsulta = null;
+            }
+
+            limpiarResultado();
+            boton.disabled = true;
+            mostrarEstado("Buscando producto...");
+
+            const callback = "recibirProducto_" + consultaActual;
+            const script = document.createElement("script");
+
+            consultaPendiente = script;
+
+            // El callback es generado por el propio programa.
+            window[callback] = function(resultado) {
+                if (consultaActual !== numeroConsulta) return;
+
+                if (temporizadorConsulta) {
+                    clearTimeout(temporizadorConsulta);
+                    temporizadorConsulta = null;
+                }
+
+                if (consultaPendiente === script) {
+                    consultaPendiente = null;
+                }
+
+                script.remove();
+                delete window[callback];
+                boton.disabled = false;
+
+                if (resultado && resultado.encontrado) {
+                    document.getElementById("codigo").value =
+                        resultado.codigoBarras || codigo;
+                    document.getElementById("producto").value =
+                        resultado.nombre || "";
+                    document.getElementById("precio").value =
+                        resultado.precio || "";
+                    document.getElementById("categoria").value =
+                        resultado.categoria || "";
+
+                    mostrarEstado(
+                        "✅ Producto encontrado: " + resultado.nombre
+                    );
+
+                } else {
+                    mostrarEstado(
+                        resultado && resultado.mensaje
+                            ? resultado.mensaje
+                            : "No se encontró el producto."
+                    );
+                }
+            };
+
+            script.onerror = function() {
+                if (consultaActual !== numeroConsulta) return;
+
+                if (temporizadorConsulta) {
+                    clearTimeout(temporizadorConsulta);
+                    temporizadorConsulta = null;
+                }
+
+                consultaPendiente = null;
+                script.remove();
+                delete window[callback];
+                boton.disabled = false;
+
+                mostrarEstado(
+                    "No se pudo consultar el servidor. " +
+                    "Comprueba que Apps Script esté implementado " +
+                    "con la versión actual."
+                );
+            };
+
+            script.src = URL_APPS_SCRIPT
+                + "?codigo=" + encodeURIComponent(codigo)
+                + "&callback=" + encodeURIComponent(callback)
+                + "&t=" + Date.now();
+
+            document.body.appendChild(script);
+
+            // Informa si el servidor no responde.
+            temporizadorConsulta = setTimeout(() => {
+                if (consultaActual !== numeroConsulta) return;
+
+                numeroConsulta++;
+                consultaPendiente = null;
+                script.remove();
+                delete window[callback];
+                boton.disabled = false;
+
+                mostrarEstado(
+                    "La consulta tardó demasiado. Intenta nuevamente."
+                );
+            }, 20000);
+        }
+
+        function limpiarCampos() {
+            numeroConsulta++;
+
+            if (consultaPendiente) {
+                consultaPendiente.remove();
+                consultaPendiente = null;
+            }
+
+            if (temporizadorConsulta) {
+                clearTimeout(temporizadorConsulta);
+                temporizadorConsulta = null;
+            }
+
+            document.getElementById("codigo").value = "";
             document.getElementById("cantidad").value = "1";
             document.getElementById("ubicacion").value = "";
 
-            document.getElementById("estado").textContent =
-                "Campos limpiados. Puedes escanear otro producto.";
+            limpiarResultado();
+
+            document.getElementById("buscar").disabled = false;
+
+            mostrarEstado(
+                "Campos limpiados. Puedes buscar otro producto."
+            );
         }
 
+        // Permite buscar pulsando Enter en el campo de código.
+        document.getElementById("codigo").addEventListener(
+            "keydown",
+            function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    buscarProducto();
+                }
+            }
+        );
+
         window.addEventListener("pagehide", () => {
-            if (escanerActivo && escaner) {
+            if (escaner && escanerActivo) {
                 escaner.stop().catch(() => {});
             }
         });
     </script>
-
 </body>
 </html>
