@@ -310,120 +310,90 @@
             document.getElementById("categoria").value = "";
         }
 
-        function buscarProducto() {
-            const codigo = document.getElementById("codigo").value.trim();
-            const boton = document.getElementById("buscar");
+        
+function buscarProducto() {
+    const codigo = document.getElementById("codigo").value.trim();
+    const boton = document.getElementById("buscar");
 
-            if (!codigo) {
-                mostrarEstado("Escribe o escanea un código de barras.");
-                return;
-            }
+    if (!codigo) {
+        mostrarEstado("Escribe o escanea un código de barras.");
+        return;
+    }
 
-            // Invalida cualquier consulta anterior.
-            numeroConsulta++;
-            const consultaActual = numeroConsulta;
+    boton.disabled = true;
+    limpiarResultado();
+    mostrarEstado("Buscando producto...");
 
-            if (consultaPendiente) {
-                consultaPendiente.remove();
-                consultaPendiente = null;
-            }
+    const callback = "recibirProductoInventario";
+    const anterior = document.getElementById("scriptConsulta");
 
-            if (temporizadorConsulta) {
-                clearTimeout(temporizadorConsulta);
-                temporizadorConsulta = null;
-            }
+    if (anterior) {
+        anterior.remove();
+    }
 
-            limpiarResultado();
-            boton.disabled = true;
-            mostrarEstado("Buscando producto...");
+    // Elimina un callback anterior si quedó pendiente.
+    delete window[callback];
 
-            const callback = "recibirProducto_" + consultaActual;
-            const script = document.createElement("script");
+    const script = document.createElement("script");
+    script.id = "scriptConsulta";
 
-            consultaPendiente = script;
+    let finalizado = false;
 
-            // El callback es generado por el propio programa.
-            window[callback] = function(resultado) {
-                if (consultaActual !== numeroConsulta) return;
+    function terminar() {
+        if (finalizado) return;
+        finalizado = true;
+        boton.disabled = false;
+        script.remove();
+        delete window[callback];
+    }
 
-                if (temporizadorConsulta) {
-                    clearTimeout(temporizadorConsulta);
-                    temporizadorConsulta = null;
-                }
+    window[callback] = function(resultado) {
+        terminar();
 
-                if (consultaPendiente === script) {
-                    consultaPendiente = null;
-                }
+        if (resultado && resultado.encontrado) {
+            document.getElementById("codigo").value =
+                resultado.codigoBarras || codigo;
+            document.getElementById("producto").value =
+                resultado.nombre || "";
+            document.getElementById("precio").value =
+                resultado.precio || "";
+            document.getElementById("categoria").value =
+                resultado.categoria || "";
 
-                script.remove();
-                delete window[callback];
-                boton.disabled = false;
-
-                if (resultado && resultado.encontrado) {
-                    document.getElementById("codigo").value =
-                        resultado.codigoBarras || codigo;
-                    document.getElementById("producto").value =
-                        resultado.nombre || "";
-                    document.getElementById("precio").value =
-                        resultado.precio || "";
-                    document.getElementById("categoria").value =
-                        resultado.categoria || "";
-
-                    mostrarEstado(
-                        "✅ Producto encontrado: " + resultado.nombre
-                    );
-
-                } else {
-                    mostrarEstado(
-                        resultado && resultado.mensaje
-                            ? resultado.mensaje
-                            : "No se encontró el producto."
-                    );
-                }
-            };
-
-            script.onerror = function() {
-                if (consultaActual !== numeroConsulta) return;
-
-                if (temporizadorConsulta) {
-                    clearTimeout(temporizadorConsulta);
-                    temporizadorConsulta = null;
-                }
-
-                consultaPendiente = null;
-                script.remove();
-                delete window[callback];
-                boton.disabled = false;
-
-                mostrarEstado(
-                    "No se pudo consultar el servidor. " +
-                    "Comprueba que Apps Script esté implementado " +
-                    "con la versión actual."
-                );
-            };
-
-            script.src = URL_APPS_SCRIPT
-                + "?codigo=" + encodeURIComponent(codigo)
-                + "&callback=" + encodeURIComponent(callback)
-                + "&t=" + Date.now();
-
-            document.body.appendChild(script);
-
-            // Informa si el servidor no responde.
-            temporizadorConsulta = setTimeout(() => {
-                if (consultaActual !== numeroConsulta) return;
-
-                numeroConsulta++;
-                consultaPendiente = null;
-                script.remove();
-                delete window[callback];
-                boton.disabled = false;
-
-                mostrarEstado(
-                    "La consulta tardó demasiado. Intenta nuevamente."
-                );
-            }, 20000);
+            mostrarEstado("✅ Producto encontrado: " + resultado.nombre);
+        } else {
+            mostrarEstado(
+                resultado && resultado.mensaje
+                    ? resultado.mensaje
+                    : "No se encontró el producto."
+            );
         }
+    };
+
+    script.onerror = function() {
+        terminar();
+        mostrarEstado(
+            "El navegador bloqueó o no pudo cargar la respuesta de Apps Script."
+        );
+    };
+
+    script.src = URL_APPS_SCRIPT
+        + "?codigo=" + encodeURIComponent(codigo)
+        + "&callback=" + callback
+        + "&t=" + Date.now();
+
+    document.body.appendChild(script);
+
+    setTimeout(function() {
+        if (!finalizado) {
+            terminar();
+            mostrarEstado(
+                "Tiempo agotado. Vuelve a intentar la búsqueda."
+            );
+        }
+    }, 15000);
+}
+
 
         function limpiarCampos() {
             numeroConsulta++;
