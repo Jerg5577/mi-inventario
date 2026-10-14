@@ -3,236 +3,405 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Glow - Inventario</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1749a8">
+  <title>Sistema Glow | Inventario</title>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --azul: #1749a8;
+      --azul-oscuro: #103779;
+      --fondo: #f3f6fb;
+      --texto: #202938;
+      --borde: #dfe5ee;
+      --verde: #18794e;
+      --rojo: #c62828;
+      --amarillo: #9a6700;
     }
+
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 20px;
-      background: #f3f5f9;
-      color: #222;
+      padding: 0 0 30px;
+      background: var(--fondo);
+      color: var(--texto);
       font-family: Arial, sans-serif;
+      font-size: 16px;
     }
 
-    .contenedor {
-      width: 100%;
-      max-width: 520px;
-      margin: 0 auto;
-      padding: 22px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+    header {
+      padding: 22px 18px 25px;
+      background: linear-gradient(135deg, var(--azul), var(--azul-oscuro));
+      color: white;
+      border-radius: 0 0 22px 22px;
     }
 
-    h1 {
-      margin-top: 0;
-      text-align: center;
+    header h1 {
+      margin: 0;
       font-size: 25px;
     }
 
-    .subtitulo {
-      text-align: center;
-      color: #666;
-      margin-bottom: 24px;
+    header p {
+      margin: 8px 0 0;
+      opacity: .9;
+      font-size: 14px;
+    }
+
+    main {
+      width: min(100% - 24px, 560px);
+      margin: 18px auto 0;
+    }
+
+    .panel {
+      background: white;
+      border: 1px solid var(--borde);
+      border-radius: 16px;
+      padding: 17px;
+      margin-bottom: 15px;
+      box-shadow: 0 3px 12px rgba(25, 45, 80, .045);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 19px;
     }
 
     label {
       display: block;
-      margin: 15px 0 7px;
-      font-weight: bold;
+      margin: 13px 0 7px;
+      font-weight: 700;
+      font-size: 14px;
     }
 
-    input {
-      display: block;
+    input, select, textarea {
       width: 100%;
-      min-height: 44px;
-      padding: 11px;
-      border: 1px solid #ccd1da;
-      border-radius: 8px;
-      font-size: 16px;
+      min-height: 46px;
+      border: 1px solid #cbd4e1;
+      border-radius: 10px;
+      padding: 12px;
+      font: inherit;
       background: white;
+      color: var(--texto);
+    }
+
+    textarea {
+      min-height: 78px;
+      resize: vertical;
     }
 
     input[readonly] {
-      background: #f6f7f9;
+      background: #f5f7fa;
+      color: #39465a;
     }
 
     button {
-      width: 100%;
-      min-height: 46px;
-      margin-top: 12px;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background: #2259c5;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
+      min-height: 47px;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: inherit;
+      font-weight: 700;
       cursor: pointer;
+      touch-action: manipulation;
     }
 
     button:disabled {
-      opacity: 0.6;
+      opacity: .55;
       cursor: wait;
     }
 
-    .boton-secundario {
-      background: #525c6b;
+    .primario {
+      background: var(--azul);
+      color: white;
+    }
+
+    .secundario {
+      background: #e9eef7;
+      color: #203b67;
+    }
+
+    .peligro {
+      background: #b42318;
+      color: white;
+    }
+
+    .ancho { width: 100%; }
+
+    .fila-botones {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 10px;
+    }
+
+    #estado {
+      margin: 0 0 14px;
+      padding: 12px;
+      background: #edf3ff;
+      border-radius: 10px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+      font-size: 14px;
     }
 
     #lector {
       width: 100%;
-      margin-top: 15px;
       overflow: hidden;
+      margin-top: 12px;
     }
 
-    #estado {
-      margin: 15px 0;
-      padding: 12px;
-      border-radius: 8px;
-      background: #eef2f8;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
+    #lector video {
+      border-radius: 10px;
     }
 
-    .tarjeta-producto {
+    .producto {
       display: none;
-      margin-top: 20px;
-      padding: 15px;
-      border: 1px solid #e0e4eb;
-      border-radius: 12px;
     }
 
-    .imagen-contenedor {
+    .imagen-wrap {
       display: none;
-      margin-bottom: 15px;
       text-align: center;
+      margin-bottom: 12px;
     }
 
     #imagenProducto {
-      display: block;
-      width: auto;
       max-width: 100%;
-      max-height: 260px;
+      max-height: 210px;
       object-fit: contain;
-      margin: 0 auto;
-      border-radius: 8px;
+      border-radius: 12px;
+    }
+
+    .nombre-producto {
+      margin: 4px 0 14px;
+      font-size: 20px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .datos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .dato {
+      background: #f6f8fc;
+      border: 1px solid #e8edf4;
+      border-radius: 11px;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .dato small {
+      display: block;
+      color: #637086;
+      margin-bottom: 6px;
+    }
+
+    .dato strong {
+      display: block;
+      font-size: 19px;
+      overflow-wrap: anywhere;
+    }
+
+    .estado-stock {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .stock-verde { background: #e1f5e8; color: #17683f; }
+    .stock-amarillo { background: #fff1cc; color: #8a5700; }
+    .stock-rojo { background: #ffe4e4; color: #a51f1f; }
+
+    .tipo-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin: 12px 0;
+    }
+
+    .tipo-selector button {
+      border: 2px solid var(--borde);
+      background: white;
+      color: var(--texto);
+    }
+
+    .tipo-selector button.seleccionado-entrada {
+      border-color: var(--verde);
+      background: #e1f5e8;
+      color: var(--verde);
+    }
+
+    .tipo-selector button.seleccionado-salida {
+      border-color: var(--rojo);
+      background: #ffe4e4;
+      color: var(--rojo);
+    }
+
+    .oculto { display: none !important; }
+
+    .movimiento {
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    .movimiento-cabecera {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 7px;
+    }
+
+    .etiqueta {
+      display: inline-block;
+      padding: 5px 8px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .etiqueta-entrada { background: #e1f5e8; color: #17683f; }
+    .etiqueta-salida { background: #ffe4e4; color: #a51f1f; }
+
+    .movimiento p {
+      margin: 5px 0;
+      font-size: 14px;
     }
 
     .nota {
-      margin-top: 18px;
-      color: #777;
+      color: #647087;
       font-size: 12px;
       line-height: 1.5;
+      text-align: center;
+      padding: 0 12px;
+    }
+
+    @media (max-width: 360px) {
+      main { width: calc(100% - 16px); }
+      .panel { padding: 13px; }
+      .datos-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 
 <body>
-  <main class="contenedor">
+  <header>
     <h1>📦 Sistema Glow</h1>
-    <p class="subtitulo">Consulta de productos e inventario</p>
+    <p>Consulta y control de existencias</p>
+  </header>
 
-    <button id="iniciar" type="button" onclick="iniciarEscaner()">
-      📷 Abrir cámara
-    </button>
-
-    <button
-      id="detener"
-      class="boton-secundario"
-      type="button"
-      onclick="detenerEscaner()"
-      hidden
-    >
-      Detener cámara
-    </button>
-
-    <div id="lector"></div>
-
-    <div id="estado" role="status" aria-live="polite">
-      Escanea un código o escríbelo manualmente.
-    </div>
-
-    <label for="codigo">Código de barras</label>
-    <input
-      id="codigo"
-      type="text"
-      placeholder="Escanea o escribe el código"
-      autocomplete="off"
-    >
-
-    <button id="buscar" type="button" onclick="buscarProducto()">
-      🔎 Buscar producto
-    </button>
-
-    <section id="tarjetaProducto" class="tarjeta-producto">
-      <div id="contenedorImagen" class="imagen-contenedor">
-        <img
-          id="imagenProducto"
-          alt="Imagen del producto"
-        >
+  <main>
+    <section class="panel">
+      <h2>🔎 Buscar producto</h2>
+      <div id="estado" role="status" aria-live="polite">
+        Escanea un código o escríbelo manualmente.
       </div>
 
-      <label for="producto">Nombre del producto</label>
-      <input id="producto" type="text" readonly>
+      <label for="codigo">Código de barras</label>
+      <input id="codigo" type="text"
+             placeholder="Escribe o escanea el código"
+             autocomplete="off">
 
-      <label for="precio">Precio</label>
-      <input id="precio" type="text" readonly>
+      <button class="primario ancho" id="buscar" type="button">
+        Buscar producto
+      </button>
 
-      <label for="categoria">Categoría</label>
-      <input id="categoria" type="text" readonly>
+      <div class="fila-botones">
+        <button class="secundario" id="iniciar" type="button">
+          📷 Abrir cámara
+        </button>
+        <button class="secundario oculto" id="detener" type="button">
+          Detener cámara
+        </button>
+      </div>
+      <div id="lector"></div>
+    </section>
 
-      <label for="idProducto">ID del producto</label>
-      <input id="idProducto" type="text" readonly>
+    <section id="tarjetaProducto" class="panel producto">
+      <h2>Producto encontrado</h2>
 
-      
-      <div id="panelInventario" style="
-        margin-top: 16px;
-        padding: 15px;
-        border: 1px solid #e0e4eb;
-        border-radius: 12px;
-        background: #f6f8fc;
-      ">
-        <h3 style="margin-top: 0;">📦 Existencias</h3>
-      
-        <label for="stock">Stock disponible</label>
-        <input id="stock" type="text" readonly>
-      
-        <label for="stockMinimo">Stock mínimo</label>
-        <input id="stockMinimo" type="text" readonly>
-      
-        <p id="alertaStock" role="status" style="font-weight: bold;"></p>
+      <div id="contenedorImagen" class="imagen-wrap">
+        <img id="imagenProducto" alt="Imagen del producto">
       </div>
 
+      <p id="nombreProducto" class="nombre-producto"></p>
 
-      <label for="cantidad">Cantidad</label>
-      <input
-        id="cantidad"
-        type="number"
-        min="1"
-        step="1"
-        value="1"
-      >
+      <div class="datos-grid">
+        <div class="dato">
+          <small>Precio</small>
+          <strong id="precio"></strong>
+        </div>
+        <div class="dato">
+          <small>Categoría</small>
+          <strong id="categoria"></strong>
+        </div>
+        <div class="dato">
+          <small>Stock disponible</small>
+          <strong id="stock"></strong>
+        </div>
+        <div class="dato">
+          <small>Stock mínimo</small>
+          <strong id="stockMinimo"></strong>
+        </div>
+      </div>
 
-      <label for="ubicacion">Ubicación (opcional)</label>
-      <input
-        id="ubicacion"
-        type="text"
-        placeholder="Ej.: Bodega, estante A1"
-      >
+      <div id="alertaStock" class="estado-stock" role="status"></div>
+      <input id="idProducto" type="hidden">
+    </section>
+
+    <section id="panelMovimiento" class="panel oculto">
+      <h2>📝 Registrar movimiento</h2>
+      <p id="productoMovimiento" style="margin-top:0;color:#637086"></p>
+
+      <label>Tipo de movimiento</label>
+      <div class="tipo-selector">
+        <button type="button" id="btnEntrada"
+                class="seleccionado-entrada">
+          ＋ Entrada
+        </button>
+        <button type="button" id="btnSalida">
+          − Salida
+        </button>
+      </div>
+
+      <label for="cantidad">Cantidad de unidades</label>
+      <input id="cantidad" type="number" min="1" step="1" value="1"
+             inputmode="numeric">
+
+      <label for="motivo">Motivo del movimiento</label>
+      <textarea id="motivo" maxlength="200"
+        placeholder="Ej.: mercancía recibida, venta, producto dañado..."
+        required></textarea>
+
+      <button id="guardarMovimiento" class="primario ancho" type="button">
+        Guardar movimiento
+      </button>
+      <p class="nota">
+        Revisa el producto, el tipo y la cantidad antes de guardar.
+      </p>
+    </section>
+
+    <section id="panelHistorial" class="panel oculto">
+      <h2>📋 Historial del producto</h2>
+      <button id="cargarHistorial" class="secundario ancho" type="button">
+        Actualizar historial
+      </button>
+      <div id="listaHistorial"></div>
     </section>
 
     <p class="nota">
-      La consulta obtiene los datos de Google Sheets.
-      Por ahora, los campos de cantidad y ubicación son informativos:
-      todavía no registran movimientos ni modifican las existencias.
+      Los movimientos modifican las existencias de Google Sheets.
+      Usa esta herramienta únicamente con productos e información autorizados.
     </p>
   </main>
 
@@ -240,228 +409,291 @@
     const URL_APPS_SCRIPT =
       "https://script.google.com/macros/s/AKfycbzrxb4r6eMwEd6t0bs3VEpsy8CE6SYOT_v2pzi7-kBOVZxZF6Z-YWkHKNSzf3ronKuw/exec";
 
+    let numeroSolicitud = 0;
+    let productoActual = null;
+    let tipoMovimiento = "ENTRADA";
     let escaner = null;
     let escanerActivo = false;
     let codigoProcesado = false;
 
-    let consultaPendiente = null;
-    let temporizadorConsulta = null;
-    let numeroConsulta = 0;
+    const $ = id => document.getElementById(id);
 
-    function mostrarEstado(mensaje) {
-      document.getElementById("estado").textContent = mensaje;
+    function estado(texto) {
+      $("estado").textContent = texto;
     }
 
-    function limpiarResultado() {
-      document.getElementById("tarjetaProducto").style.display = "none";
+    function llamarServidor(parametros) {
+      return new Promise((resolve, reject) => {
+        const callback = "glowRespuesta_" + Date.now() + "_" +
+          Math.floor(Math.random() * 1000000);
+        const script = document.createElement("script");
+        let terminado = false;
 
-      document.getElementById("producto").value = "";
-      document.getElementById("precio").value = "";
-      document.getElementById("categoria").value = "";
-      document.getElementById("idProducto").value = "";
-      document.getElementById("stock").value = "";
-      document.getElementById("stockMinimo").value = "";
-      document.getElementById("alertaStock").textContent = "";
+        const temporizador = setTimeout(() => {
+          finalizar();
+          reject(new Error("La consulta tardó demasiado. Intenta nuevamente."));
+        }, 20000);
 
+        function finalizar() {
+          if (terminado) return;
+          terminado = true;
+          clearTimeout(temporizador);
+          script.remove();
+          try { delete window[callback]; } catch (e) {}
+        }
 
-      document.getElementById("imagenProducto").removeAttribute("src");
-      document.getElementById("contenedorImagen").style.display = "none";
+        window[callback] = resultado => {
+          finalizar();
+          resolve(resultado);
+        };
+
+        script.onerror = () => {
+          finalizar();
+          reject(new Error("No se pudo conectar con Google Sheets."));
+        };
+
+        const query = new URLSearchParams({
+          ...parametros,
+          callback,
+          t: String(Date.now())
+        });
+
+        script.src = URL_APPS_SCRIPT + "?" + query.toString();
+        document.body.appendChild(script);
+      });
     }
 
-    function cancelarConsultaAnterior() {
-      numeroConsulta++;
+    function limpiarProducto() {
+      productoActual = null;
+      $("tarjetaProducto").style.display = "none";
+      $("tarjetaProducto").classList.add("oculto");
+      $("panelMovimiento").classList.add("oculto");
+      $("panelHistorial").classList.add("oculto");
+      $("listaHistorial").replaceChildren();
+      $("imagenProducto").removeAttribute("src");
+      $("contenedorImagen").style.display = "none";
+      $("nombreProducto").textContent = "";
+      $("alertaStock").textContent = "";
+    }
 
-      if (temporizadorConsulta) {
-        clearTimeout(temporizadorConsulta);
-        temporizadorConsulta = null;
+    function mostrarStock(stock, minimo) {
+      const s = Number(stock);
+      const m = Number(minimo);
+
+      $("stock").textContent = stock;
+      $("stockMinimo").textContent = minimo;
+
+      const alerta = $("alertaStock");
+      alerta.className = "estado-stock";
+
+      if (!Number.isFinite(s) || !Number.isFinite(m)) {
+        alerta.textContent = "⚠️ Revisa los datos del inventario.";
+        alerta.classList.add("stock-amarillo");
+      } else if (s <= 0) {
+        alerta.textContent = "🔴 Producto agotado";
+        alerta.classList.add("stock-rojo");
+      } else if (s <= m) {
+        alerta.textContent = "⚠️ Stock bajo";
+        alerta.classList.add("stock-amarillo");
+      } else {
+        alerta.textContent = "✅ Existencias suficientes";
+        alerta.classList.add("stock-verde");
       }
-
-      if (consultaPendiente) {
-        consultaPendiente.remove();
-        consultaPendiente = null;
-      }
     }
 
-    function buscarProducto() {
-      const codigo = document.getElementById("codigo").value.trim();
-      const boton = document.getElementById("buscar");
-
+    async function buscarProducto() {
+      const codigo = $("codigo").value.trim();
       if (!codigo) {
-        mostrarEstado("Escribe o escanea un código de barras.");
+        estado("Escribe o escanea un código de barras.");
         return;
       }
 
-      cancelarConsultaAnterior();
+      const solicitud = ++numeroSolicitud;
+      $("buscar").disabled = true;
+      limpiarProducto();
+      estado("Buscando producto...");
 
-      const consultaActual = numeroConsulta;
-      const callback = "recibirProducto_" + consultaActual;
-      const script = document.createElement("script");
+      try {
+        const resultado = await llamarServidor({
+          accion: "buscar",
+          codigo
+        });
 
-      limpiarResultado();
-      boton.disabled = true;
-      mostrarEstado("Buscando producto...");
-
-      consultaPendiente = script;
-
-      window[callback] = function(resultado) {
-        if (consultaActual !== numeroConsulta) return;
-
-        if (temporizadorConsulta) {
-          clearTimeout(temporizadorConsulta);
-          temporizadorConsulta = null;
-        }
-
-        consultaPendiente = null;
-        script.remove();
-        delete window[callback];
-
-        boton.disabled = false;
+        if (solicitud !== numeroSolicitud) return;
 
         if (!resultado || !resultado.encontrado) {
-          mostrarEstado(
-            resultado && resultado.mensaje
-              ? resultado.mensaje
-              : "No se encontró el producto."
-          );
+          estado(resultado?.mensaje || "No se encontró el producto.");
           return;
         }
 
-        document.getElementById("codigo").value =
-          resultado.codigoBarras || codigo;
+        productoActual = resultado;
+        $("codigo").value = resultado.codigoBarras || codigo;
+        $("nombreProducto").textContent = resultado.nombre || "";
+        $("precio").textContent = resultado.precio || "";
+        $("categoria").textContent = resultado.categoria || "";
+        $("tarjetaProducto").classList.remove("oculto");
+        $("tarjetaProducto").style.display = "block";
 
-        document.getElementById("producto").value =
-          resultado.nombre || "";
+        mostrarStock(resultado.stock, resultado.stockMinimo);
 
-        document.getElementById("precio").value =
-          resultado.precio || "";
-
-        document.getElementById("categoria").value =
-          resultado.categoria || "";
-
-        document.getElementById("idProducto").value =
-          resultado.id || "";
-
-        
-        const campoStock = document.getElementById("stock");
-        const campoMinimo = document.getElementById("stockMinimo");
-        const alertaStock = document.getElementById("alertaStock");
-        
-        if (resultado.inventarioEncontrado) {
-          campoStock.value = resultado.stock;
-          campoMinimo.value = resultado.stockMinimo;
-        
-          const stock = Number(resultado.stock);
-          const minimo = Number(resultado.stockMinimo);
-        
-          if (resultado.stock === "" || resultado.stockMinimo === "" ||
-              !Number.isFinite(stock) || !Number.isFinite(minimo)) {
-            alertaStock.textContent =
-              "⚠️ Revisa los valores de stock en Google Sheets.";
-            alertaStock.style.color = "#9a6700";
-          } else if (stock <= 0) {
-            alertaStock.textContent = "🔴 Producto agotado";
-            alertaStock.style.color = "#c62828";
-          } else if (stock <= minimo) {
-            alertaStock.textContent = "⚠️ Stock bajo";
-            alertaStock.style.color = "#b26a00";
-          } else {
-            alertaStock.textContent = "✅ Existencias suficientes";
-            alertaStock.style.color = "#16803c";
-          }
-        } else {
-          campoStock.value = "Sin registro";
-          campoMinimo.value = "Sin registro";
-          alertaStock.textContent =
-            "⚠️ Este producto no tiene un registro en Inventario.";
-          alertaStock.style.color = "#9a6700";
-        }
-
-
-        document.getElementById("tarjetaProducto").style.display = "block";
-
-        const imagen = document.getElementById("imagenProducto");
-        const contenedorImagen = document.getElementById("contenedorImagen");
-        const urlImagen = String(resultado.imagen || "").trim();
-
-        if (/^https:\/\/\S+$/i.test(urlImagen)) {
-          imagen.onload = function() {
-            contenedorImagen.style.display = "block";
+        const url = String(resultado.imagen || "").trim();
+        if (/^https:\/\/\S+$/i.test(url)) {
+          $("imagenProducto").onload = () => {
+            $("contenedorImagen").style.display = "block";
           };
-
-          imagen.onerror = function() {
-            imagen.removeAttribute("src");
-            contenedorImagen.style.display = "none";
+          $("imagenProducto").onerror = () => {
+            $("imagenProducto").removeAttribute("src");
+            $("contenedorImagen").style.display = "none";
           };
-
-          imagen.src = urlImagen;
-        } else {
-          imagen.removeAttribute("src");
-          contenedorImagen.style.display = "none";
+          $("imagenProducto").src = url;
         }
 
-        mostrarEstado("✅ Producto encontrado: " + resultado.nombre);
-      };
+        $("productoMovimiento").textContent =
+          resultado.nombre + " · ID: " + resultado.id;
+        $("panelMovimiento").classList.remove("oculto");
+        $("panelHistorial").classList.remove("oculto");
 
-      script.onerror = function() {
-        if (consultaActual !== numeroConsulta) return;
+        estado("✅ Producto encontrado.");
+        await cargarHistorial();
+      } catch (error) {
+        if (solicitud === numeroSolicitud) {
+          estado("⚠️ " + error.message);
+        }
+      } finally {
+        if (solicitud === numeroSolicitud) $("buscar").disabled = false;
+      }
+    }
 
-        if (temporizadorConsulta) {
-          clearTimeout(temporizadorConsulta);
-          temporizadorConsulta = null;
+    function seleccionarTipo(tipo) {
+      tipoMovimiento = tipo;
+      $("btnEntrada").className =
+        tipo === "ENTRADA" ? "seleccionado-entrada" : "";
+      $("btnSalida").className =
+        tipo === "SALIDA" ? "seleccionado-salida" : "";
+    }
+
+    async function guardarMovimiento() {
+      if (!productoActual) {
+        estado("Primero busca un producto.");
+        return;
+      }
+
+      const cantidadTexto = $("cantidad").value.trim();
+      const cantidad = Number(cantidadTexto);
+      const motivo = $("motivo").value.trim();
+
+      if (!cantidadTexto || !Number.isSafeInteger(cantidad) || cantidad <= 0) {
+        estado("La cantidad debe ser un entero mayor que cero.");
+        return;
+      }
+
+      if (!motivo) {
+        estado("Escribe el motivo del movimiento.");
+        $("motivo").focus();
+        return;
+      }
+
+      const boton = $("guardarMovimiento");
+      boton.disabled = true;
+      estado("Registrando movimiento...");
+
+      try {
+        const resultado = await llamarServidor({
+          accion: "movimiento",
+          id: productoActual.id,
+          tipo: tipoMovimiento,
+          cantidad: String(cantidad),
+          motivo
+        });
+
+        if (!resultado || !resultado.exito) {
+          throw new Error(resultado?.mensaje || "No se pudo registrar.");
         }
 
-        consultaPendiente = null;
-        script.remove();
-        delete window[callback];
+        estado("✅ " + resultado.mensaje +
+          " Stock actualizado: " + resultado.stockNuevo);
 
+        $("cantidad").value = "1";
+        $("motivo").value = "";
+
+        // Refresca la información desde el servidor.
+        await buscarProducto();
+      } catch (error) {
+        estado("⚠️ " + error.message);
+      } finally {
         boton.disabled = false;
+      }
+    }
 
-        mostrarEstado(
-          "No se pudo consultar el servidor. Revisa tu conexión e intenta nuevamente."
-        );
-      };
+    async function cargarHistorial() {
+      if (!productoActual) return;
 
-      script.src =
-        URL_APPS_SCRIPT +
-        "?codigo=" + encodeURIComponent(codigo) +
-        "&callback=" + encodeURIComponent(callback) +
-        "&t=" + Date.now();
+      $("cargarHistorial").disabled = true;
+      $("listaHistorial").textContent = "Cargando historial...";
 
-      document.body.appendChild(script);
+      try {
+        const resultado = await llamarServidor({
+          accion: "historial",
+          id: productoActual.id
+        });
 
-      temporizadorConsulta = setTimeout(function() {
-        if (consultaActual !== numeroConsulta) return;
+        const lista = $("listaHistorial");
+        lista.replaceChildren();
 
-        numeroConsulta++;
-        consultaPendiente = null;
+        if (!resultado || !Array.isArray(resultado.movimientos) ||
+            resultado.movimientos.length === 0) {
+          lista.textContent = "Todavía no hay movimientos para este producto.";
+          return;
+        }
 
-        script.remove();
-        delete window[callback];
+        resultado.movimientos.forEach(m => {
+          const tarjeta = document.createElement("article");
+          tarjeta.className = "movimiento";
 
-        temporizadorConsulta = null;
-        boton.disabled = false;
+          const cabecera = document.createElement("div");
+          cabecera.className = "movimiento-cabecera";
 
-        mostrarEstado("La consulta tardó demasiado. Intenta nuevamente.");
-      }, 20000);
+          const etiqueta = document.createElement("span");
+          etiqueta.className = "etiqueta " +
+            (m.tipo === "ENTRADA" ? "etiqueta-entrada" : "etiqueta-salida");
+          etiqueta.textContent = m.tipo;
+
+          const fecha = document.createElement("small");
+          fecha.textContent = m.fecha;
+
+          cabecera.append(etiqueta, fecha);
+
+          const cantidad = document.createElement("p");
+          cantidad.textContent = "Cantidad: " + m.cantidad;
+
+          const motivo = document.createElement("p");
+          motivo.textContent = "Motivo: " + m.motivo;
+
+          const stock = document.createElement("p");
+          stock.textContent = "Stock: " + m.stockAnterior + " → " + m.stockNuevo;
+
+          tarjeta.append(cabecera, cantidad, motivo, stock);
+          lista.appendChild(tarjeta);
+        });
+      } catch (error) {
+        $("listaHistorial").textContent = "⚠️ " + error.message;
+      } finally {
+        $("cargarHistorial").disabled = false;
+      }
     }
 
     async function iniciarEscaner() {
       if (escanerActivo) return;
 
       if (typeof Html5Qrcode === "undefined") {
-        mostrarEstado(
-          "No se pudo cargar el lector. Comprueba tu conexión a Internet."
-        );
+        estado("No se pudo cargar el lector. Revisa tu conexión.");
         return;
       }
 
       try {
-        if (!escaner) {
-          escaner = new Html5Qrcode("lector");
-        }
-
+        if (!escaner) escaner = new Html5Qrcode("lector");
         codigoProcesado = false;
-        mostrarEstado("Solicitando acceso a la cámara...");
+        estado("Solicitando acceso a la cámara...");
 
         await escaner.start(
           { facingMode: "environment" },
@@ -478,62 +710,49 @@
               Html5QrcodeSupportedFormats.ITF
             ]
           },
-          async function(texto) {
+          async texto => {
             if (!escanerActivo || codigoProcesado) return;
-
             codigoProcesado = true;
-            document.getElementById("codigo").value = texto;
-
-            mostrarEstado("Código detectado. Buscando producto...");
-
+            $("codigo").value = texto;
             await detenerEscaner();
             buscarProducto();
           },
-          function() {
-            // Ignora los fotogramas donde no se detecta un código.
-          }
+          () => {}
         );
 
         escanerActivo = true;
-
-        document.getElementById("iniciar").hidden = true;
-        document.getElementById("detener").hidden = false;
-
-        mostrarEstado("Cámara activa. Coloca el código frente a ella.");
-
+        $("iniciar").classList.add("oculto");
+        $("detener").classList.remove("oculto");
+        estado("Cámara activa. Coloca el código frente a ella.");
       } catch (error) {
         escanerActivo = false;
-
-        mostrarEstado(
-          "No se pudo abrir la cámara. Revisa los permisos del navegador."
-        );
+        estado("No se pudo abrir la cámara. Revisa los permisos del navegador.");
       }
     }
 
     async function detenerEscaner() {
-      if (!escaner) return;
-
-      if (escanerActivo) {
-        try {
-          await escaner.stop();
-        } catch (error) {
-          // Puede que el lector ya se haya detenido.
-        }
+      if (escaner && escanerActivo) {
+        try { await escaner.stop(); } catch (e) {}
       }
 
       escanerActivo = false;
+      $("iniciar").classList.remove("oculto");
+      $("detener").classList.add("oculto");
 
-      document.getElementById("iniciar").hidden = false;
-      document.getElementById("detener").hidden = true;
-
-      try {
-        await escaner.clear();
-      } catch (error) {
-        // No hace falta mostrar un error si ya se limpió el lector.
+      if (escaner) {
+        try { await escaner.clear(); } catch (e) {}
       }
     }
 
-    document.getElementById("codigo").addEventListener("keydown", function(e) {
+    $("buscar").addEventListener("click", buscarProducto);
+    $("btnEntrada").addEventListener("click", () => seleccionarTipo("ENTRADA"));
+    $("btnSalida").addEventListener("click", () => seleccionarTipo("SALIDA"));
+    $("guardarMovimiento").addEventListener("click", guardarMovimiento);
+    $("cargarHistorial").addEventListener("click", cargarHistorial);
+    $("iniciar").addEventListener("click", iniciarEscaner);
+    $("detener").addEventListener("click", detenerEscaner);
+
+    $("codigo").addEventListener("keydown", e => {
       if (e.key === "Enter") {
         e.preventDefault();
         buscarProducto();
