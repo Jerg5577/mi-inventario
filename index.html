@@ -192,6 +192,26 @@
       <label for="idProducto">ID del producto</label>
       <input id="idProducto" type="text" readonly>
 
+      
+      <div id="panelInventario" style="
+        margin-top: 16px;
+        padding: 15px;
+        border: 1px solid #e0e4eb;
+        border-radius: 12px;
+        background: #f6f8fc;
+      ">
+        <h3 style="margin-top: 0;">📦 Existencias</h3>
+      
+        <label for="stock">Stock disponible</label>
+        <input id="stock" type="text" readonly>
+      
+        <label for="stockMinimo">Stock mínimo</label>
+        <input id="stockMinimo" type="text" readonly>
+      
+        <p id="alertaStock" role="status" style="font-weight: bold;"></p>
+      </div>
+
+
       <label for="cantidad">Cantidad</label>
       <input
         id="cantidad"
@@ -239,6 +259,10 @@
       document.getElementById("precio").value = "";
       document.getElementById("categoria").value = "";
       document.getElementById("idProducto").value = "";
+      document.getElementById("stock").value = "";
+      document.getElementById("stockMinimo").value = "";
+      document.getElementById("alertaStock").textContent = "";
+
 
       document.getElementById("imagenProducto").removeAttribute("src");
       document.getElementById("contenedorImagen").style.display = "none";
@@ -316,6 +340,42 @@
 
         document.getElementById("idProducto").value =
           resultado.id || "";
+
+        
+        const campoStock = document.getElementById("stock");
+        const campoMinimo = document.getElementById("stockMinimo");
+        const alertaStock = document.getElementById("alertaStock");
+        
+        if (resultado.inventarioEncontrado) {
+          campoStock.value = resultado.stock;
+          campoMinimo.value = resultado.stockMinimo;
+        
+          const stock = Number(resultado.stock);
+          const minimo = Number(resultado.stockMinimo);
+        
+          if (resultado.stock === "" || resultado.stockMinimo === "" ||
+              !Number.isFinite(stock) || !Number.isFinite(minimo)) {
+            alertaStock.textContent =
+              "⚠️ Revisa los valores de stock en Google Sheets.";
+            alertaStock.style.color = "#9a6700";
+          } else if (stock <= 0) {
+            alertaStock.textContent = "🔴 Producto agotado";
+            alertaStock.style.color = "#c62828";
+          } else if (stock <= minimo) {
+            alertaStock.textContent = "⚠️ Stock bajo";
+            alertaStock.style.color = "#b26a00";
+          } else {
+            alertaStock.textContent = "✅ Existencias suficientes";
+            alertaStock.style.color = "#16803c";
+          }
+        } else {
+          campoStock.value = "Sin registro";
+          campoMinimo.value = "Sin registro";
+          alertaStock.textContent =
+            "⚠️ Este producto no tiene un registro en Inventario.";
+          alertaStock.style.color = "#9a6700";
+        }
+
 
         document.getElementById("tarjetaProducto").style.display = "block";
 
